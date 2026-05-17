@@ -159,23 +159,23 @@ public class PmsProductServiceImpl implements PmsProductService {
         PmsProductExample productExample = new PmsProductExample();
         PmsProductExample.Criteria criteria = productExample.createCriteria();
         criteria.andDeleteStatusEqualTo(0);
-        if (productQueryParam.getPublishStatus() != null) {
-            criteria.andPublishStatusEqualTo(productQueryParam.getPublishStatus());
+        if (productQueryParam.publishStatus() != null) {
+            criteria.andPublishStatusEqualTo(productQueryParam.publishStatus());
         }
-        if (productQueryParam.getVerifyStatus() != null) {
-            criteria.andVerifyStatusEqualTo(productQueryParam.getVerifyStatus());
+        if (productQueryParam.verifyStatus() != null) {
+            criteria.andVerifyStatusEqualTo(productQueryParam.verifyStatus());
         }
-        if (!StrUtil.isEmpty(productQueryParam.getKeyword())) {
-            criteria.andNameLike("%" + productQueryParam.getKeyword() + "%");
+        if (!StrUtil.isEmpty(productQueryParam.keyword())) {
+            criteria.andNameLike("%" + productQueryParam.keyword() + "%");
         }
-        if (!StrUtil.isEmpty(productQueryParam.getProductSn())) {
-            criteria.andProductSnEqualTo(productQueryParam.getProductSn());
+        if (!StrUtil.isEmpty(productQueryParam.productSn())) {
+            criteria.andProductSnEqualTo(productQueryParam.productSn());
         }
-        if (productQueryParam.getBrandId() != null) {
-            criteria.andBrandIdEqualTo(productQueryParam.getBrandId());
+        if (productQueryParam.brandId() != null) {
+            criteria.andBrandIdEqualTo(productQueryParam.brandId());
         }
-        if (productQueryParam.getProductCategoryId() != null) {
-            criteria.andProductCategoryIdEqualTo(productQueryParam.getProductCategoryId());
+        if (productQueryParam.productCategoryId() != null) {
+            criteria.andProductCategoryIdEqualTo(productQueryParam.productCategoryId());
         }
         return productMapper.selectByExample(productExample);
     }

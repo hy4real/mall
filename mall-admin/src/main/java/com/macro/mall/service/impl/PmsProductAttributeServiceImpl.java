@@ -11,7 +11,6 @@ import com.macro.mall.model.PmsProductAttributeCategory;
 import com.macro.mall.model.PmsProductAttributeExample;
 import com.macro.mall.service.PmsProductAttributeService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,7 +34,17 @@ public class PmsProductAttributeServiceImpl implements PmsProductAttributeServic
     @Override
     public int create(PmsProductAttributeParam pmsProductAttributeParam) {
         PmsProductAttribute pmsProductAttribute = new PmsProductAttribute();
-        BeanUtils.copyProperties(pmsProductAttributeParam, pmsProductAttribute);
+        pmsProductAttribute.setProductAttributeCategoryId(pmsProductAttributeParam.productAttributeCategoryId());
+        pmsProductAttribute.setName(pmsProductAttributeParam.name());
+        pmsProductAttribute.setSelectType(pmsProductAttributeParam.selectType());
+        pmsProductAttribute.setInputType(pmsProductAttributeParam.inputType());
+        pmsProductAttribute.setInputList(pmsProductAttributeParam.inputList());
+        pmsProductAttribute.setSort(pmsProductAttributeParam.sort());
+        pmsProductAttribute.setFilterType(pmsProductAttributeParam.filterType());
+        pmsProductAttribute.setSearchType(pmsProductAttributeParam.searchType());
+        pmsProductAttribute.setRelatedStatus(pmsProductAttributeParam.relatedStatus());
+        pmsProductAttribute.setHandAddStatus(pmsProductAttributeParam.handAddStatus());
+        pmsProductAttribute.setType(pmsProductAttributeParam.type());
         int count = productAttributeMapper.insertSelective(pmsProductAttribute);
         PmsProductAttributeCategory pmsProductAttributeCategory = productAttributeCategoryMapper.selectByPrimaryKey(pmsProductAttribute.getProductAttributeCategoryId());
         if (pmsProductAttribute.getType() == 0) {
@@ -51,7 +60,17 @@ public class PmsProductAttributeServiceImpl implements PmsProductAttributeServic
     public int update(Long id, PmsProductAttributeParam productAttributeParam) {
         PmsProductAttribute pmsProductAttribute = new PmsProductAttribute();
         pmsProductAttribute.setId(id);
-        BeanUtils.copyProperties(productAttributeParam, pmsProductAttribute);
+        pmsProductAttribute.setProductAttributeCategoryId(productAttributeParam.productAttributeCategoryId());
+        pmsProductAttribute.setName(productAttributeParam.name());
+        pmsProductAttribute.setSelectType(productAttributeParam.selectType());
+        pmsProductAttribute.setInputType(productAttributeParam.inputType());
+        pmsProductAttribute.setInputList(productAttributeParam.inputList());
+        pmsProductAttribute.setSort(productAttributeParam.sort());
+        pmsProductAttribute.setFilterType(productAttributeParam.filterType());
+        pmsProductAttribute.setSearchType(productAttributeParam.searchType());
+        pmsProductAttribute.setRelatedStatus(productAttributeParam.relatedStatus());
+        pmsProductAttribute.setHandAddStatus(productAttributeParam.handAddStatus());
+        pmsProductAttribute.setType(productAttributeParam.type());
         return productAttributeMapper.updateByPrimaryKeySelective(pmsProductAttribute);
     }
 

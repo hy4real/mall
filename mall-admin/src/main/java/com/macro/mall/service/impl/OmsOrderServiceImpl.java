@@ -43,7 +43,7 @@ public class OmsOrderServiceImpl implements OmsOrderService {
         List<OmsOrderOperateHistory> operateHistoryList = deliveryParamList.stream()
                 .map(omsOrderDeliveryParam -> {
                     OmsOrderOperateHistory history = new OmsOrderOperateHistory();
-                    history.setOrderId(omsOrderDeliveryParam.getOrderId());
+                    history.setOrderId(omsOrderDeliveryParam.orderId());
                     history.setCreateTime(new Date());
                     history.setOperateMan("后台管理员");
                     history.setOrderStatus(2);
@@ -91,22 +91,22 @@ public class OmsOrderServiceImpl implements OmsOrderService {
     @Override
     public int updateReceiverInfo(OmsReceiverInfoParam receiverInfoParam) {
         OmsOrder order = new OmsOrder();
-        order.setId(receiverInfoParam.getOrderId());
-        order.setReceiverName(receiverInfoParam.getReceiverName());
-        order.setReceiverPhone(receiverInfoParam.getReceiverPhone());
-        order.setReceiverPostCode(receiverInfoParam.getReceiverPostCode());
-        order.setReceiverDetailAddress(receiverInfoParam.getReceiverDetailAddress());
-        order.setReceiverProvince(receiverInfoParam.getReceiverProvince());
-        order.setReceiverCity(receiverInfoParam.getReceiverCity());
-        order.setReceiverRegion(receiverInfoParam.getReceiverRegion());
+        order.setId(receiverInfoParam.orderId());
+        order.setReceiverName(receiverInfoParam.receiverName());
+        order.setReceiverPhone(receiverInfoParam.receiverPhone());
+        order.setReceiverPostCode(receiverInfoParam.receiverPostCode());
+        order.setReceiverDetailAddress(receiverInfoParam.receiverDetailAddress());
+        order.setReceiverProvince(receiverInfoParam.receiverProvince());
+        order.setReceiverCity(receiverInfoParam.receiverCity());
+        order.setReceiverRegion(receiverInfoParam.receiverRegion());
         order.setModifyTime(new Date());
         int count = orderMapper.updateByPrimaryKeySelective(order);
         //插入操作记录
         OmsOrderOperateHistory history = new OmsOrderOperateHistory();
-        history.setOrderId(receiverInfoParam.getOrderId());
+        history.setOrderId(receiverInfoParam.orderId());
         history.setCreateTime(new Date());
         history.setOperateMan("后台管理员");
-        history.setOrderStatus(receiverInfoParam.getStatus());
+        history.setOrderStatus(receiverInfoParam.status());
         history.setNote("修改收货人信息");
         orderOperateHistoryMapper.insert(history);
         return count;
@@ -115,17 +115,17 @@ public class OmsOrderServiceImpl implements OmsOrderService {
     @Override
     public int updateMoneyInfo(OmsMoneyInfoParam moneyInfoParam) {
         OmsOrder order = new OmsOrder();
-        order.setId(moneyInfoParam.getOrderId());
-        order.setFreightAmount(moneyInfoParam.getFreightAmount());
-        order.setDiscountAmount(moneyInfoParam.getDiscountAmount());
+        order.setId(moneyInfoParam.orderId());
+        order.setFreightAmount(moneyInfoParam.freightAmount());
+        order.setDiscountAmount(moneyInfoParam.discountAmount());
         order.setModifyTime(new Date());
         int count = orderMapper.updateByPrimaryKeySelective(order);
         //插入操作记录
         OmsOrderOperateHistory history = new OmsOrderOperateHistory();
-        history.setOrderId(moneyInfoParam.getOrderId());
+        history.setOrderId(moneyInfoParam.orderId());
         history.setCreateTime(new Date());
         history.setOperateMan("后台管理员");
-        history.setOrderStatus(moneyInfoParam.getStatus());
+        history.setOrderStatus(moneyInfoParam.status());
         history.setNote("修改费用信息");
         orderOperateHistoryMapper.insert(history);
         return count;

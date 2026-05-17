@@ -39,31 +39,31 @@ public class OmsOrderReturnApplyServiceImpl implements OmsOrderReturnApplyServic
 
     @Override
     public int updateStatus(Long id, OmsUpdateStatusParam statusParam) {
-        Integer status = statusParam.getStatus();
+        Integer status = statusParam.status();
         OmsOrderReturnApply returnApply = new OmsOrderReturnApply();
         if(status.equals(1)){
             //确认退货
             returnApply.setId(id);
             returnApply.setStatus(1);
-            returnApply.setReturnAmount(statusParam.getReturnAmount());
-            returnApply.setCompanyAddressId(statusParam.getCompanyAddressId());
+            returnApply.setReturnAmount(statusParam.returnAmount());
+            returnApply.setCompanyAddressId(statusParam.companyAddressId());
             returnApply.setHandleTime(new Date());
-            returnApply.setHandleMan(statusParam.getHandleMan());
-            returnApply.setHandleNote(statusParam.getHandleNote());
+            returnApply.setHandleMan(statusParam.handleMan());
+            returnApply.setHandleNote(statusParam.handleNote());
         }else if(status.equals(2)){
             //完成退货
             returnApply.setId(id);
             returnApply.setStatus(2);
             returnApply.setReceiveTime(new Date());
-            returnApply.setReceiveMan(statusParam.getReceiveMan());
-            returnApply.setReceiveNote(statusParam.getReceiveNote());
+            returnApply.setReceiveMan(statusParam.receiveMan());
+            returnApply.setReceiveNote(statusParam.receiveNote());
         }else if(status.equals(3)){
             //拒绝退货
             returnApply.setId(id);
             returnApply.setStatus(3);
             returnApply.setHandleTime(new Date());
-            returnApply.setHandleMan(statusParam.getHandleMan());
-            returnApply.setHandleNote(statusParam.getHandleNote());
+            returnApply.setHandleMan(statusParam.handleMan());
+            returnApply.setHandleNote(statusParam.handleNote());
         }else{
             return 0;
         }

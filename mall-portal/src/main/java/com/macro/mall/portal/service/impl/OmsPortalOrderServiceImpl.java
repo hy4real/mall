@@ -82,12 +82,12 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
     public Map<String, Object> generateOrder(OrderParam orderParam) {
         List<OmsOrderItem> orderItemList = new ArrayList<>();
         //校验收货地址
-        if(orderParam.getMemberReceiveAddressId()==null){
+        if(orderParam.memberReceiveAddressId()==null){
             Asserts.fail("请选择收货地址！");
         }
         //获取购物车及优惠信息
         UmsMember currentMember = memberService.getCurrentMember();
-        List<CartPromotionItem> cartPromotionItemList = cartItemService.listPromotion(currentMember.getId(), orderParam.getCartIds());
+        List<CartPromotionItem> cartPromotionItemList = cartItemService.listPromotion(currentMember.getId(), orderParam.cartIds());
         for (CartPromotionItem cartPromotionItem : cartPromotionItemList) {
             //生成下单商品信息
             OmsOrderItem orderItem = new OmsOrderItem();
@@ -113,14 +113,14 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
             Asserts.fail("库存不足，无法下单");
         }
         //判断使用使用了优惠券
-        if (orderParam.getCouponId() == null) {
+        if (orderParam.couponId() == null) {
             //不用优惠券
             for (OmsOrderItem orderItem : orderItemList) {
                 orderItem.setCouponAmount(new BigDecimal(0));
             }
         } else {
             //使用优惠券
-            SmsCouponHistoryDetail couponHistoryDetail = getUseCoupon(cartPromotionItemList, orderParam.getCouponId());
+            SmsCouponHistoryDetail couponHistoryDetail = getUseCoupon(cartPromotionItemList, orderParam.couponId());
             if (couponHistoryDetail == null) {
                 Asserts.fail("该优惠券不可用");
             }
@@ -128,7 +128,7 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
             handleCouponAmount(orderItemList, couponHistoryDetail);
         }
         //判断是否使用积分
-        if (orderParam.getUseIntegration() == null||orderParam.getUseIntegration().equals(0)) {
+        if (orderParam.useIntegration() == null||orderParam.useIntegration().equals(0)) {
             //不使用积分
             for (OmsOrderItem orderItem : orderItemList) {
                 orderItem.setIntegrationAmount(new BigDecimal(0));
@@ -136,7 +136,7 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
         } else {
             //使用积分
             BigDecimal totalAmount = calcTotalAmount(orderItemList);
-            BigDecimal integrationAmount = getUseIntegrationAmount(orderParam.getUseIntegration(), totalAmount, currentMember, orderParam.getCouponId() != null);
+            BigDecimal integrationAmount = getUseIntegrationAmount(orderParam.useIntegration(), totalAmount, currentMember, orderParam.couponId() != null);
             if (integrationAmount.compareTo(new BigDecimal(0)) == 0) {
                 Asserts.fail("积分不可用");
             } else {
@@ -158,17 +158,17 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
         order.setFreightAmount(new BigDecimal(0));
         order.setPromotionAmount(calcPromotionAmount(orderItemList));
         order.setPromotionInfo(getOrderPromotionInfo(orderItemList));
-        if (orderParam.getCouponId() == null) {
+        if (orderParam.couponId() == null) {
             order.setCouponAmount(new BigDecimal(0));
         } else {
-            order.setCouponId(orderParam.getCouponId());
+            order.setCouponId(orderParam.couponId());
             order.setCouponAmount(calcCouponAmount(orderItemList));
         }
-        if (orderParam.getUseIntegration() == null) {
+        if (orderParam.useIntegration() == null) {
             order.setIntegration(0);
             order.setIntegrationAmount(new BigDecimal(0));
         } else {
-            order.setIntegration(orderParam.getUseIntegration());
+            order.setIntegration(orderParam.useIntegration());
             order.setIntegrationAmount(calcIntegrationAmount(orderItemList));
         }
         order.setPayAmount(calcPayAmount(order));
@@ -177,7 +177,7 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
         order.setCreateTime(new Date());
         order.setMemberUsername(currentMember.getUsername());
         //支付方式：0->未支付；1->支付宝；2->微信
-        order.setPayType(orderParam.getPayType());
+        order.setPayType(orderParam.payType());
         //订单来源：0->PC订单；1->app订单
         order.setSourceType(1);
         //订单状态：0->待付款；1->待发货；2->已发货；3->已完成；4->已关闭；5->无效订单
@@ -185,7 +185,7 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
         //订单类型：0->正常订单；1->秒杀订单
         order.setOrderType(0);
         //收货人信息：姓名、电话、邮编、地址
-        UmsMemberReceiveAddress address = memberReceiveAddressService.getItem(orderParam.getMemberReceiveAddressId());
+        UmsMemberReceiveAddress address = memberReceiveAddressService.getItem(orderParam.memberReceiveAddressId());
         order.setReceiverName(address.getName());
         order.setReceiverPhone(address.getPhoneNumber());
         order.setReceiverPostCode(address.getPostCode());
@@ -216,16 +216,16 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
         }
         orderItemDao.insertList(orderItemList);
         //如使用优惠券更新优惠券使用状态
-        if (orderParam.getCouponId() != null) {
-            updateCouponStatus(orderParam.getCouponId(), currentMember.getId(), 1);
+        if (orderParam.couponId() != null) {
+            updateCouponStatus(orderParam.couponId(), currentMember.getId(), 1);
         }
         //如使用积分需要扣除积分
-        if (orderParam.getUseIntegration() != null) {
-            order.setUseIntegration(orderParam.getUseIntegration());
+        if (orderParam.useIntegration() != null) {
+            order.setUseIntegration(orderParam.useIntegration());
             if(currentMember.getIntegration()==null){
                 currentMember.setIntegration(0);
             }
-            memberService.updateIntegration(currentMember.getId(), currentMember.getIntegration() - orderParam.getUseIntegration());
+            memberService.updateIntegration(currentMember.getId(), currentMember.getIntegration() - orderParam.useIntegration());
         }
         //删除购物车中的下单商品
         deleteCartItemList(cartPromotionItemList, currentMember);

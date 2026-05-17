@@ -12,7 +12,6 @@ import com.macro.mall.model.*;
 import com.macro.mall.service.PmsProductCategoryService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -31,10 +30,18 @@ public class PmsProductCategoryServiceImpl implements PmsProductCategoryService 
     public int create(PmsProductCategoryParam pmsProductCategoryParam) {
         PmsProductCategory productCategory = new PmsProductCategory();
         productCategory.setProductCount(0);
-        BeanUtils.copyProperties(pmsProductCategoryParam, productCategory);
+        productCategory.setParentId(pmsProductCategoryParam.parentId());
+        productCategory.setName(pmsProductCategoryParam.name());
+        productCategory.setProductUnit(pmsProductCategoryParam.productUnit());
+        productCategory.setNavStatus(pmsProductCategoryParam.navStatus());
+        productCategory.setShowStatus(pmsProductCategoryParam.showStatus());
+        productCategory.setSort(pmsProductCategoryParam.sort());
+        productCategory.setIcon(pmsProductCategoryParam.icon());
+        productCategory.setKeywords(pmsProductCategoryParam.keywords());
+        productCategory.setDescription(pmsProductCategoryParam.description());
         setCategoryLevel(productCategory);
         int count = productCategoryMapper.insertSelective(productCategory);
-        List<Long> productAttributeIdList = pmsProductCategoryParam.getProductAttributeIdList();
+        List<Long> productAttributeIdList = pmsProductCategoryParam.productAttributeIdList();
         if (!CollectionUtils.isEmpty(productAttributeIdList)) {
             insertRelationList(productCategory.getId(), productAttributeIdList);
         }
@@ -56,18 +63,26 @@ public class PmsProductCategoryServiceImpl implements PmsProductCategoryService 
     public int update(Long id, PmsProductCategoryParam pmsProductCategoryParam) {
         PmsProductCategory productCategory = new PmsProductCategory();
         productCategory.setId(id);
-        BeanUtils.copyProperties(pmsProductCategoryParam, productCategory);
+        productCategory.setParentId(pmsProductCategoryParam.parentId());
+        productCategory.setName(pmsProductCategoryParam.name());
+        productCategory.setProductUnit(pmsProductCategoryParam.productUnit());
+        productCategory.setNavStatus(pmsProductCategoryParam.navStatus());
+        productCategory.setShowStatus(pmsProductCategoryParam.showStatus());
+        productCategory.setSort(pmsProductCategoryParam.sort());
+        productCategory.setIcon(pmsProductCategoryParam.icon());
+        productCategory.setKeywords(pmsProductCategoryParam.keywords());
+        productCategory.setDescription(pmsProductCategoryParam.description());
         setCategoryLevel(productCategory);
         PmsProduct product = new PmsProduct();
         product.setProductCategoryName(productCategory.getName());
         PmsProductExample example = new PmsProductExample();
         example.createCriteria().andProductCategoryIdEqualTo(id);
         productMapper.updateByExampleSelective(product, example);
-        if (!CollectionUtils.isEmpty(pmsProductCategoryParam.getProductAttributeIdList())) {
+        if (!CollectionUtils.isEmpty(pmsProductCategoryParam.productAttributeIdList())) {
             PmsProductCategoryAttributeRelationExample relationExample = new PmsProductCategoryAttributeRelationExample();
             relationExample.createCriteria().andProductCategoryIdEqualTo(id);
             productCategoryAttributeRelationMapper.deleteByExample(relationExample);
-            insertRelationList(id, pmsProductCategoryParam.getProductAttributeIdList());
+            insertRelationList(id, pmsProductCategoryParam.productAttributeIdList());
         } else {
             PmsProductCategoryAttributeRelationExample relationExample = new PmsProductCategoryAttributeRelationExample();
             relationExample.createCriteria().andProductCategoryIdEqualTo(id);

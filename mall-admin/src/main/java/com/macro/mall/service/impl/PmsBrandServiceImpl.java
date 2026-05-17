@@ -11,7 +11,6 @@ import com.macro.mall.model.PmsProduct;
 import com.macro.mall.model.PmsProductExample;
 import com.macro.mall.service.PmsBrandService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,7 +29,14 @@ public class PmsBrandServiceImpl implements PmsBrandService {
     @Override
     public int createBrand(PmsBrandParam pmsBrandParam) {
         PmsBrand pmsBrand = new PmsBrand();
-        BeanUtils.copyProperties(pmsBrandParam, pmsBrand);
+        pmsBrand.setName(pmsBrandParam.name());
+        pmsBrand.setFirstLetter(pmsBrandParam.firstLetter());
+        pmsBrand.setSort(pmsBrandParam.sort());
+        pmsBrand.setFactoryStatus(pmsBrandParam.factoryStatus());
+        pmsBrand.setShowStatus(pmsBrandParam.showStatus());
+        pmsBrand.setLogo(pmsBrandParam.logo());
+        pmsBrand.setBigPic(pmsBrandParam.bigPic());
+        pmsBrand.setBrandStory(pmsBrandParam.brandStory());
         if (StrUtil.isEmpty(pmsBrand.getFirstLetter())) {
             pmsBrand.setFirstLetter(pmsBrand.getName().substring(0, 1));
         }
@@ -40,7 +46,14 @@ public class PmsBrandServiceImpl implements PmsBrandService {
     @Override
     public int updateBrand(Long id, PmsBrandParam pmsBrandParam) {
         PmsBrand pmsBrand = new PmsBrand();
-        BeanUtils.copyProperties(pmsBrandParam, pmsBrand);
+        pmsBrand.setName(pmsBrandParam.name());
+        pmsBrand.setFirstLetter(pmsBrandParam.firstLetter());
+        pmsBrand.setSort(pmsBrandParam.sort());
+        pmsBrand.setFactoryStatus(pmsBrandParam.factoryStatus());
+        pmsBrand.setShowStatus(pmsBrandParam.showStatus());
+        pmsBrand.setLogo(pmsBrandParam.logo());
+        pmsBrand.setBigPic(pmsBrandParam.bigPic());
+        pmsBrand.setBrandStory(pmsBrandParam.brandStory());
         pmsBrand.setId(id);
         if (StrUtil.isEmpty(pmsBrand.getFirstLetter())) {
             pmsBrand.setFirstLetter(pmsBrand.getName().substring(0, 1));

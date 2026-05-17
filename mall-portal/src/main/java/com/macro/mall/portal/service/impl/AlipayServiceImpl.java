@@ -48,11 +48,11 @@ public class AlipayServiceImpl implements AlipayService {
         //******必传参数******
         JSONObject bizContent = new JSONObject();
         //商户订单号，商家自定义，保持唯一性
-        bizContent.put("out_trade_no", aliPayParam.getOutTradeNo());
+        bizContent.put("out_trade_no", aliPayParam.outTradeNo());
         //支付金额，最小值0.01元
-        bizContent.put("total_amount", aliPayParam.getTotalAmount());
+        bizContent.put("total_amount", aliPayParam.totalAmount());
         //订单标题，不可使用特殊符号
-        bizContent.put("subject", aliPayParam.getSubject());
+        bizContent.put("subject", aliPayParam.subject());
         //电脑网站支付场景固定传值FAST_INSTANT_TRADE_PAY
         bizContent.put("product_code", "FAST_INSTANT_TRADE_PAY");
         request.setBizContent(bizContent.toString());
@@ -140,11 +140,11 @@ public class AlipayServiceImpl implements AlipayService {
         //******必传参数******
         JSONObject bizContent = new JSONObject();
         //商户订单号，商家自定义，保持唯一性
-        bizContent.put("out_trade_no", aliPayParam.getOutTradeNo());
+        bizContent.put("out_trade_no", aliPayParam.outTradeNo());
         //支付金额，最小值0.01元
-        bizContent.put("total_amount", aliPayParam.getTotalAmount());
+        bizContent.put("total_amount", aliPayParam.totalAmount());
         //订单标题，不可使用特殊符号
-        bizContent.put("subject", aliPayParam.getSubject());
+        bizContent.put("subject", aliPayParam.subject());
         //手机网站支付默认传值FAST_INSTANT_TRADE_PAY
         bizContent.put("product_code", "QUICK_WAP_WAY");
         request.setBizContent(bizContent.toString());

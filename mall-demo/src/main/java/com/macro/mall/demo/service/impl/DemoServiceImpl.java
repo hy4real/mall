@@ -6,8 +6,8 @@ import com.macro.mall.demo.service.DemoService;
 import com.macro.mall.mapper.PmsBrandMapper;
 import com.macro.mall.model.PmsBrand;
 import com.macro.mall.model.PmsBrandExample;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,9 +17,9 @@ import java.util.List;
  * Created by macro on 2019/4/8.
  */
 @Service
+@RequiredArgsConstructor
 public class DemoServiceImpl implements DemoService {
-    @Autowired
-    private PmsBrandMapper brandMapper;
+    private final PmsBrandMapper brandMapper;
 
     @Override
     public List<PmsBrand> listAllBrand() {
