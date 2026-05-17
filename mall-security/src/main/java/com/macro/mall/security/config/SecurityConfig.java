@@ -44,7 +44,7 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
         if (dynamicSecurityService != null) {
-            http.addFilterBefore(dynamicSecurityFilter, JwtAuthenticationTokenFilter.class);
+            http.addFilterAfter(dynamicSecurityFilter, JwtAuthenticationTokenFilter.class);
         }
         return http.build();
     }
