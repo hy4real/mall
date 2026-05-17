@@ -6,7 +6,7 @@ import com.macro.mall.mapper.SmsHomeNewProductMapper;
 import com.macro.mall.model.SmsHomeNewProduct;
 import com.macro.mall.model.SmsHomeNewProductExample;
 import com.macro.mall.service.SmsHomeNewProductService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,9 +16,9 @@ import java.util.List;
  * Created by macro on 2018/11/6.
  */
 @Service
+@RequiredArgsConstructor
 public class SmsHomeNewProductServiceImpl implements SmsHomeNewProductService {
-    @Autowired
-    private SmsHomeNewProductMapper homeNewProductMapper;
+    private final SmsHomeNewProductMapper homeNewProductMapper;
     @Override
     public int create(List<SmsHomeNewProduct> homeNewProductList) {
         for (SmsHomeNewProduct SmsHomeNewProduct : homeNewProductList) {

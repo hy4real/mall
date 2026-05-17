@@ -3,38 +3,29 @@ package com.macro.mall.controller;
 import com.macro.mall.common.api.CommonResult;
 import com.macro.mall.model.UmsResourceCategory;
 import com.macro.mall.service.UmsResourceCategoryService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * 后台资源分类管理Controller
- * Created by macro on 2020/2/5.
- */
-@Controller
-@Api(tags = "UmsResourceCategoryController")
+@RestController
 @Tag(name = "UmsResourceCategoryController", description = "后台资源分类管理")
 @RequestMapping("/resourceCategory")
+@RequiredArgsConstructor
 public class UmsResourceCategoryController {
-    @Autowired
-    private UmsResourceCategoryService resourceCategoryService;
+    private final UmsResourceCategoryService resourceCategoryService;
 
-    @ApiOperation("查询所有后台资源分类")
-    @RequestMapping(value = "/listAll", method = RequestMethod.GET)
-    @ResponseBody
+    @Operation(summary = "查询所有后台资源分类")
+    @GetMapping("/listAll")
     public CommonResult<List<UmsResourceCategory>> listAll() {
         List<UmsResourceCategory> resourceList = resourceCategoryService.listAll();
         return CommonResult.success(resourceList);
     }
 
-    @ApiOperation("添加后台资源分类")
-    @RequestMapping(value = "/create", method = RequestMethod.POST)
-    @ResponseBody
+    @Operation(summary = "添加后台资源分类")
+    @PostMapping("/create")
     public CommonResult create(@RequestBody UmsResourceCategory umsResourceCategory) {
         int count = resourceCategoryService.create(umsResourceCategory);
         if (count > 0) {
@@ -44,9 +35,8 @@ public class UmsResourceCategoryController {
         }
     }
 
-    @ApiOperation("修改后台资源分类")
-    @RequestMapping(value = "/update/{id}", method = RequestMethod.POST)
-    @ResponseBody
+    @Operation(summary = "修改后台资源分类")
+    @PostMapping("/update/{id}")
     public CommonResult update(@PathVariable Long id,
                                @RequestBody UmsResourceCategory umsResourceCategory) {
         int count = resourceCategoryService.update(id, umsResourceCategory);
@@ -57,9 +47,8 @@ public class UmsResourceCategoryController {
         }
     }
 
-    @ApiOperation("根据ID删除后台资源分类")
-    @RequestMapping(value = "/delete/{id}", method = RequestMethod.POST)
-    @ResponseBody
+    @Operation(summary = "根据ID删除后台资源分类")
+    @PostMapping("/delete/{id}")
     public CommonResult delete(@PathVariable Long id) {
         int count = resourceCategoryService.delete(id);
         if (count > 0) {

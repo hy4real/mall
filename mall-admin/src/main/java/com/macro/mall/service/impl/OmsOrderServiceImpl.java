@@ -10,7 +10,7 @@ import com.macro.mall.model.OmsOrder;
 import com.macro.mall.model.OmsOrderExample;
 import com.macro.mall.model.OmsOrderOperateHistory;
 import com.macro.mall.service.OmsOrderService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -22,15 +22,12 @@ import java.util.stream.Collectors;
  * Created by macro on 2018/10/11.
  */
 @Service
+@RequiredArgsConstructor
 public class OmsOrderServiceImpl implements OmsOrderService {
-    @Autowired
-    private OmsOrderMapper orderMapper;
-    @Autowired
-    private OmsOrderDao orderDao;
-    @Autowired
-    private OmsOrderOperateHistoryDao orderOperateHistoryDao;
-    @Autowired
-    private OmsOrderOperateHistoryMapper orderOperateHistoryMapper;
+    private final OmsOrderMapper orderMapper;
+    private final OmsOrderDao orderDao;
+    private final OmsOrderOperateHistoryDao orderOperateHistoryDao;
+    private final OmsOrderOperateHistoryMapper orderOperateHistoryMapper;
 
     @Override
     public List<OmsOrder> list(OmsOrderQueryParam queryParam, Integer pageSize, Integer pageNum) {

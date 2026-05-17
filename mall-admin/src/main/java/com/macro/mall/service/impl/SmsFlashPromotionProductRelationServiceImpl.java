@@ -7,7 +7,7 @@ import com.macro.mall.mapper.SmsFlashPromotionProductRelationMapper;
 import com.macro.mall.model.SmsFlashPromotionProductRelation;
 import com.macro.mall.model.SmsFlashPromotionProductRelationExample;
 import com.macro.mall.service.SmsFlashPromotionProductRelationService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,11 +17,10 @@ import java.util.List;
  * Created by macro on 2018/11/16.
  */
 @Service
+@RequiredArgsConstructor
 public class SmsFlashPromotionProductRelationServiceImpl implements SmsFlashPromotionProductRelationService {
-    @Autowired
-    private SmsFlashPromotionProductRelationMapper relationMapper;
-    @Autowired
-    private SmsFlashPromotionProductRelationDao relationDao;
+    private final SmsFlashPromotionProductRelationMapper relationMapper;
+    private final SmsFlashPromotionProductRelationDao relationDao;
     @Override
     public int create(List<SmsFlashPromotionProductRelation> relationList) {
         for (SmsFlashPromotionProductRelation relation : relationList) {

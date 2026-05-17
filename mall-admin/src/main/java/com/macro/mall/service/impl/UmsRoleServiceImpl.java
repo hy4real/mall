@@ -9,7 +9,6 @@ import com.macro.mall.mapper.UmsRoleResourceRelationMapper;
 import com.macro.mall.model.*;
 import com.macro.mall.service.UmsAdminCacheService;
 import com.macro.mall.service.UmsRoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -21,16 +20,24 @@ import java.util.List;
  */
 @Service
 public class UmsRoleServiceImpl implements UmsRoleService {
-    @Autowired
-    private UmsRoleMapper roleMapper;
-    @Autowired
-    private UmsRoleMenuRelationMapper roleMenuRelationMapper;
-    @Autowired
-    private UmsRoleResourceRelationMapper roleResourceRelationMapper;
-    @Autowired
-    private UmsRoleDao roleDao;
-    @Autowired
-    private UmsAdminCacheService adminCacheService;
+    private final UmsRoleMapper roleMapper;
+    private final UmsRoleMenuRelationMapper roleMenuRelationMapper;
+    private final UmsRoleResourceRelationMapper roleResourceRelationMapper;
+    private final UmsRoleDao roleDao;
+    private final UmsAdminCacheService adminCacheService;
+
+    public UmsRoleServiceImpl(UmsRoleMapper roleMapper,
+                              UmsRoleMenuRelationMapper roleMenuRelationMapper,
+                              UmsRoleResourceRelationMapper roleResourceRelationMapper,
+                              UmsRoleDao roleDao,
+                              UmsAdminCacheService adminCacheService) {
+        this.roleMapper = roleMapper;
+        this.roleMenuRelationMapper = roleMenuRelationMapper;
+        this.roleResourceRelationMapper = roleResourceRelationMapper;
+        this.roleDao = roleDao;
+        this.adminCacheService = adminCacheService;
+    }
+
     @Override
     public int create(UmsRole role) {
         role.setCreateTime(new Date());

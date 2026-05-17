@@ -7,7 +7,7 @@ import com.macro.mall.portal.domain.MemberBrandAttention;
 import com.macro.mall.portal.repository.MemberBrandAttentionRepository;
 import com.macro.mall.portal.service.MemberAttentionService;
 import com.macro.mall.portal.service.UmsMemberService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,15 +21,13 @@ import java.util.Date;
  * Created by macro on 2018/8/2.
  */
 @Service
+@RequiredArgsConstructor
 public class MemberAttentionServiceImpl implements MemberAttentionService {
     @Value("${mongo.insert.sqlEnable}")
     private Boolean sqlEnable;
-    @Autowired
-    private PmsBrandMapper brandMapper;
-    @Autowired
-    private MemberBrandAttentionRepository memberBrandAttentionRepository;
-    @Autowired
-    private UmsMemberService memberService;
+    private final PmsBrandMapper brandMapper;
+    private final MemberBrandAttentionRepository memberBrandAttentionRepository;
+    private final UmsMemberService memberService;
 
     @Override
     public int add(MemberBrandAttention memberBrandAttention) {

@@ -1,7 +1,22 @@
 version: '3'
+volumes:
+  mysql_data:
+  mysql_conf:
+  mysql_log:
+  redis_data:
+  nginx_conf:
+  nginx_html:
+  nginx_logs:
+  rabbitmq_data:
+  elasticsearch_plugins:
+  elasticsearch_data:
+  logstash_conf:
+  mongo_db:
+  minio_data:
+
 services:
   mysql:
-    image: mysql:5.7
+    image: mysql:8.0
     container_name: mysql
     command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     restart: always
@@ -10,56 +25,60 @@ services:
     ports:
       - 3306:3306
     volumes:
-      - /mydata/mysql/data:/var/lib/mysql #数据文件目录挂载
-      - /mydata/mysql/conf:/etc/mysql #配置文件目录挂载
-      - /mydata/mysql/log:/var/log/mysql #日志文件目录挂载
+      - mysql_data:/var/lib/mysql #数据文件目录挂载
+      - mysql_conf:/etc/mysql #配置文件目录挂载
+      - mysql_log:/var/log/mysql #日志文件目录挂载
   redis:
     image: redis:7
     container_name: redis
     command: redis-server --appendonly yes
     volumes:
-      - /mydata/redis/data:/data #数据文件目录挂载
+      - redis_data:/data #数据文件目录挂载
     ports:
       - 6379:6379
   nginx:
     image: nginx:1.22
     container_name: nginx
     volumes:
-      - /mydata/nginx/conf:/etc/nginx #配置文件目录挂载
-      - /mydata/nginx/html:/usr/share/nginx/html #静态资源根目录挂载
-      - /mydata/nginx/logs:/var/log/nginx #日志文件目录挂载
+      - nginx_conf:/etc/nginx #配置文件目录挂载
+      - nginx_html:/usr/share/nginx/html #静态资源根目录挂载
+      - nginx_logs:/var/log/nginx #日志文件目录挂载
     ports:
       - 80:80
   rabbitmq:
-    image: rabbitmq:3.9.11-management
+    image: rabbitmq:3.12-management
     container_name: rabbitmq
     volumes:
-      - /mydata/rabbitmq/data:/var/lib/rabbitmq #数据文件目录挂载
+      - rabbitmq_data:/var/lib/rabbitmq #数据文件目录挂载
+    environment:
+      RABBITMQ_DEFAULT_USER: mall
+      RABBITMQ_DEFAULT_PASS: mall
+      RABBITMQ_DEFAULT_VHOST: /mall
     ports:
       - 5672:5672
       - 15672:15672
   elasticsearch:
-    image: elasticsearch:7.17.3
+    build: ./elasticsearch
     container_name: elasticsearch
     environment:
       - "cluster.name=elasticsearch" #设置集群名称为elasticsearch
       - "discovery.type=single-node" #以单一节点模式启动
       - "ES_JAVA_OPTS=-Xms512m -Xmx1024m" #设置es使用的jvm内存大小
+      - "xpack.security.enabled=false" #禁用安全认证（开发环境）
     volumes:
-      - /mydata/elasticsearch/plugins:/usr/share/elasticsearch/plugins #插件文件目录挂载
-      - /mydata/elasticsearch/data:/usr/share/elasticsearch/data #数据文件目录挂载
+      - elasticsearch_plugins:/usr/share/elasticsearch/plugins #插件文件目录挂载
+      - elasticsearch_data:/usr/share/elasticsearch/data #数据文件目录挂载
     ports:
       - 9200:9200
       - 9300:9300
   logstash:
-    image: logstash:7.17.3
+    image: logstash:8.10.2
     container_name: logstash
     environment:
       - TZ=Asia/Shanghai
-    volumes:
-      - /mydata/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf #配置文件挂载
+      - "xpack.monitoring.enabled=false"
     depends_on:
-      - elasticsearch #kibana在elasticsearch启动之后再启动
+      - elasticsearch #logstash在elasticsearch启动之后再启动
     links:
       - elasticsearch:es #可以用es这个域名访问elasticsearch服务
     ports:
@@ -68,7 +87,7 @@ services:
       - 4562:4562
       - 4563:4563
   kibana:
-    image: kibana:7.17.3
+    image: kibana:8.10.2
     container_name: kibana
     links:
       - elasticsearch:es #可以用es这个域名访问elasticsearch服务
@@ -79,10 +98,10 @@ services:
     ports:
       - 5601:5601
   mongo:
-    image: mongo:4
+    image: mongo:7.0
     container_name: mongo
     volumes:
-      - /mydata/mongo/db:/data/db #数据文件目录挂载
+      - mongo_db:/data/db #数据文件目录挂载
     ports:
       - 27017:27017
   minio:
@@ -90,7 +109,7 @@ services:
     container_name: minio
     command: server /data --console-address ":9001" #指定数据目录及console运行端口启动
     volumes:
-      - /mydata/minio/data:/data #数据目录挂载
+      - minio_data:/data #数据目录挂载
     environment:
       - "MINIO_ROOT_USER=minioadmin"
       - "MINIO_ROOT_PASSWORD=minioadmin"

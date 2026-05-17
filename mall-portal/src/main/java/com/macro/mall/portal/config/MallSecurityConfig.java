@@ -1,7 +1,7 @@
 package com.macro.mall.portal.config;
 
 import com.macro.mall.portal.service.UmsMemberService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -11,10 +11,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
  * Created by macro on 2019/11/5.
  */
 @Configuration
+@RequiredArgsConstructor
 public class MallSecurityConfig {
 
-    @Autowired
-    private UmsMemberService memberService;
+    private final UmsMemberService memberService;
 
     @Bean
     public UserDetailsService userDetailsService() {

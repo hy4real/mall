@@ -4,30 +4,22 @@ import com.macro.mall.common.api.CommonPage;
 import com.macro.mall.common.api.CommonResult;
 import com.macro.mall.model.SmsHomeNewProduct;
 import com.macro.mall.service.SmsHomeNewProductService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * 首页新品管理Controller
- * Created by macro on 2018/11/6.
- */
-@Controller
-@Api(tags = "SmsHomeNewProductController")
+@RestController
 @Tag(name = "SmsHomeNewProductController", description = "首页新品管理")
 @RequestMapping("/home/newProduct")
+@RequiredArgsConstructor
 public class SmsHomeNewProductController {
-    @Autowired
-    private SmsHomeNewProductService homeNewProductService;
+    private final SmsHomeNewProductService homeNewProductService;
 
-    @ApiOperation("批量添加首页新品")
-    @RequestMapping(value = "/create", method = RequestMethod.POST)
-    @ResponseBody
+    @Operation(summary = "批量添加首页新品")
+    @PostMapping("/create")
     public CommonResult create(@RequestBody List<SmsHomeNewProduct> homeNewProductList) {
         int count = homeNewProductService.create(homeNewProductList);
         if (count > 0) {
@@ -36,9 +28,8 @@ public class SmsHomeNewProductController {
         return CommonResult.failed();
     }
 
-    @ApiOperation("修改首页新品排序")
-    @RequestMapping(value = "/update/sort/{id}", method = RequestMethod.POST)
-    @ResponseBody
+    @Operation(summary = "修改首页新品排序")
+    @PostMapping("/update/sort/{id}")
     public CommonResult updateSort(@PathVariable Long id, Integer sort) {
         int count = homeNewProductService.updateSort(id, sort);
         if (count > 0) {
@@ -47,9 +38,8 @@ public class SmsHomeNewProductController {
         return CommonResult.failed();
     }
 
-    @ApiOperation("批量删除首页新品")
-    @RequestMapping(value = "/delete", method = RequestMethod.POST)
-    @ResponseBody
+    @Operation(summary = "批量删除首页新品")
+    @PostMapping("/delete")
     public CommonResult delete(@RequestParam("ids") List<Long> ids) {
         int count = homeNewProductService.delete(ids);
         if (count > 0) {
@@ -58,9 +48,8 @@ public class SmsHomeNewProductController {
         return CommonResult.failed();
     }
 
-    @ApiOperation("批量修改首页新品状态")
-    @RequestMapping(value = "/update/recommendStatus", method = RequestMethod.POST)
-    @ResponseBody
+    @Operation(summary = "批量修改首页新品状态")
+    @PostMapping("/update/recommendStatus")
     public CommonResult updateRecommendStatus(@RequestParam("ids") List<Long> ids, @RequestParam Integer recommendStatus) {
         int count = homeNewProductService.updateRecommendStatus(ids, recommendStatus);
         if (count > 0) {
@@ -69,9 +58,8 @@ public class SmsHomeNewProductController {
         return CommonResult.failed();
     }
 
-    @ApiOperation("分页查询首页新品")
-    @RequestMapping(value = "/list", method = RequestMethod.GET)
-    @ResponseBody
+    @Operation(summary = "分页查询首页新品")
+    @GetMapping("/list")
     public CommonResult<CommonPage<SmsHomeNewProduct>> list(@RequestParam(value = "productName", required = false) String productName,
                                                             @RequestParam(value = "recommendStatus", required = false) Integer recommendStatus,
                                                             @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,

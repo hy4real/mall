@@ -19,8 +19,6 @@ import com.macro.mall.service.UmsAdminCacheService;
 import com.macro.mall.service.UmsAdminService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,11 +26,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -44,18 +43,26 @@ import java.util.List;
 @Service
 public class UmsAdminServiceImpl implements UmsAdminService {
     private static final Logger LOGGER = LoggerFactory.getLogger(UmsAdminServiceImpl.class);
-    @Autowired
-    private JwtTokenUtil jwtTokenUtil;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private UmsAdminMapper adminMapper;
-    @Autowired
-    private UmsAdminRoleRelationMapper adminRoleRelationMapper;
-    @Autowired
-    private UmsAdminRoleRelationDao adminRoleRelationDao;
-    @Autowired
-    private UmsAdminLoginLogMapper loginLogMapper;
+    private final JwtTokenUtil jwtTokenUtil;
+    private final PasswordEncoder passwordEncoder;
+    private final UmsAdminMapper adminMapper;
+    private final UmsAdminRoleRelationMapper adminRoleRelationMapper;
+    private final UmsAdminRoleRelationDao adminRoleRelationDao;
+    private final UmsAdminLoginLogMapper loginLogMapper;
+
+    public UmsAdminServiceImpl(JwtTokenUtil jwtTokenUtil,
+                               PasswordEncoder passwordEncoder,
+                               UmsAdminMapper adminMapper,
+                               UmsAdminRoleRelationMapper adminRoleRelationMapper,
+                               UmsAdminRoleRelationDao adminRoleRelationDao,
+                               UmsAdminLoginLogMapper loginLogMapper) {
+        this.jwtTokenUtil = jwtTokenUtil;
+        this.passwordEncoder = passwordEncoder;
+        this.adminMapper = adminMapper;
+        this.adminRoleRelationMapper = adminRoleRelationMapper;
+        this.adminRoleRelationDao = adminRoleRelationDao;
+        this.loginLogMapper = loginLogMapper;
+    }
 
     @Override
     public UmsAdmin getAdminByUsername(String username) {
@@ -78,7 +85,12 @@ public class UmsAdminServiceImpl implements UmsAdminService {
     @Override
     public UmsAdmin register(UmsAdminParam umsAdminParam) {
         UmsAdmin umsAdmin = new UmsAdmin();
-        BeanUtils.copyProperties(umsAdminParam, umsAdmin);
+        umsAdmin.setUsername(umsAdminParam.username());
+        umsAdmin.setPassword(umsAdminParam.password());
+        umsAdmin.setIcon(umsAdminParam.icon());
+        umsAdmin.setEmail(umsAdminParam.email());
+        umsAdmin.setNickName(umsAdminParam.nickName());
+        umsAdmin.setNote(umsAdminParam.note());
         umsAdmin.setCreateTime(new Date());
         umsAdmin.setStatus(1);
         //查询是否有相同用户名的用户
@@ -195,6 +207,7 @@ public class UmsAdminServiceImpl implements UmsAdminService {
         return count;
     }
 
+    @Transactional
     @Override
     public int updateRole(Long adminId, List<Long> roleIds) {
         int count = roleIds == null ? 0 : roleIds.size();
@@ -240,22 +253,22 @@ public class UmsAdminServiceImpl implements UmsAdminService {
 
     @Override
     public int updatePassword(UpdateAdminPasswordParam param) {
-        if(StrUtil.isEmpty(param.getUsername())
-                ||StrUtil.isEmpty(param.getOldPassword())
-                ||StrUtil.isEmpty(param.getNewPassword())){
+        if(StrUtil.isEmpty(param.username())
+                ||StrUtil.isEmpty(param.oldPassword())
+                ||StrUtil.isEmpty(param.newPassword())){
             return -1;
         }
         UmsAdminExample example = new UmsAdminExample();
-        example.createCriteria().andUsernameEqualTo(param.getUsername());
+        example.createCriteria().andUsernameEqualTo(param.username());
         List<UmsAdmin> adminList = adminMapper.selectByExample(example);
         if(CollUtil.isEmpty(adminList)){
             return -2;
         }
         UmsAdmin umsAdmin = adminList.get(0);
-        if(!passwordEncoder.matches(param.getOldPassword(),umsAdmin.getPassword())){
+        if(!passwordEncoder.matches(param.oldPassword(),umsAdmin.getPassword())){
             return -3;
         }
-        umsAdmin.setPassword(passwordEncoder.encode(param.getNewPassword()));
+        umsAdmin.setPassword(passwordEncoder.encode(param.newPassword()));
         adminMapper.updateByPrimaryKey(umsAdmin);
         getCacheService().delAdmin(umsAdmin.getId());
         return 1;

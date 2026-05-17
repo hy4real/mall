@@ -5,7 +5,7 @@ import com.macro.mall.mapper.OmsOrderReturnReasonMapper;
 import com.macro.mall.model.OmsOrderReturnReason;
 import com.macro.mall.model.OmsOrderReturnReasonExample;
 import com.macro.mall.service.OmsOrderReturnReasonService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -16,9 +16,9 @@ import java.util.List;
  * Created by macro on 2018/10/17.
  */
 @Service
+@RequiredArgsConstructor
 public class OmsOrderReturnReasonServiceImpl implements OmsOrderReturnReasonService {
-    @Autowired
-    private OmsOrderReturnReasonMapper returnReasonMapper;
+    private final OmsOrderReturnReasonMapper returnReasonMapper;
     @Override
     public int create(OmsOrderReturnReason returnReason) {
         returnReason.setCreateTime(new Date());

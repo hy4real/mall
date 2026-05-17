@@ -6,7 +6,7 @@ import com.macro.mall.mapper.SmsHomeBrandMapper;
 import com.macro.mall.model.SmsHomeBrand;
 import com.macro.mall.model.SmsHomeBrandExample;
 import com.macro.mall.service.SmsHomeBrandService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,9 +16,9 @@ import java.util.List;
  * Created by macro on 2018/11/6.
  */
 @Service
+@RequiredArgsConstructor
 public class SmsHomeBrandServiceImpl implements SmsHomeBrandService {
-    @Autowired
-    private SmsHomeBrandMapper homeBrandMapper;
+    private final SmsHomeBrandMapper homeBrandMapper;
     @Override
     public int create(List<SmsHomeBrand> homeBrandList) {
         for (SmsHomeBrand smsHomeBrand : homeBrandList) {

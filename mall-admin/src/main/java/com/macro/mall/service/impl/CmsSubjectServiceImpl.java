@@ -6,7 +6,7 @@ import com.macro.mall.mapper.CmsSubjectMapper;
 import com.macro.mall.model.CmsSubject;
 import com.macro.mall.model.CmsSubjectExample;
 import com.macro.mall.service.CmsSubjectService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,9 +16,9 @@ import java.util.List;
  * Created by macro on 2018/6/1.
  */
 @Service
+@RequiredArgsConstructor
 public class CmsSubjectServiceImpl implements CmsSubjectService {
-    @Autowired
-    private CmsSubjectMapper subjectMapper;
+    private final CmsSubjectMapper subjectMapper;
 
     @Override
     public List<CmsSubject> listAll() {

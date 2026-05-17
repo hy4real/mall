@@ -10,7 +10,7 @@ import com.macro.mall.portal.domain.PmsPortalProductDetail;
 import com.macro.mall.portal.domain.PmsProductCategoryNode;
 import com.macro.mall.portal.service.PmsPortalProductService;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,25 +21,17 @@ import java.util.stream.Collectors;
  * Created by macro on 2020/4/6.
  */
 @Service
+@RequiredArgsConstructor
 public class PmsPortalProductServiceImpl implements PmsPortalProductService {
-    @Autowired
-    private PmsProductMapper productMapper;
-    @Autowired
-    private PmsProductCategoryMapper productCategoryMapper;
-    @Autowired
-    private PmsBrandMapper brandMapper;
-    @Autowired
-    private PmsProductAttributeMapper productAttributeMapper;
-    @Autowired
-    private PmsProductAttributeValueMapper productAttributeValueMapper;
-    @Autowired
-    private PmsSkuStockMapper skuStockMapper;
-    @Autowired
-    private PmsProductLadderMapper productLadderMapper;
-    @Autowired
-    private PmsProductFullReductionMapper productFullReductionMapper;
-    @Autowired
-    private PortalProductDao portalProductDao;
+    private final PmsProductMapper productMapper;
+    private final PmsProductCategoryMapper productCategoryMapper;
+    private final PmsBrandMapper brandMapper;
+    private final PmsProductAttributeMapper productAttributeMapper;
+    private final PmsProductAttributeValueMapper productAttributeValueMapper;
+    private final PmsSkuStockMapper skuStockMapper;
+    private final PmsProductLadderMapper productLadderMapper;
+    private final PmsProductFullReductionMapper productFullReductionMapper;
+    private final PortalProductDao portalProductDao;
 
     @Override
     public List<PmsProduct> search(String keyword, Long brandId, Long productCategoryId, Integer pageNum, Integer pageSize, Integer sort) {

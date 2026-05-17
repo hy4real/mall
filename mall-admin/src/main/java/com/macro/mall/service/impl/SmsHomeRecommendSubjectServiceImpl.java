@@ -6,7 +6,7 @@ import com.macro.mall.mapper.SmsHomeRecommendSubjectMapper;
 import com.macro.mall.model.SmsHomeRecommendSubject;
 import com.macro.mall.model.SmsHomeRecommendSubjectExample;
 import com.macro.mall.service.SmsHomeRecommendSubjectService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,9 +16,9 @@ import java.util.List;
  * Created by macro on 2018/11/7.
  */
 @Service
+@RequiredArgsConstructor
 public class SmsHomeRecommendSubjectServiceImpl implements SmsHomeRecommendSubjectService {
-    @Autowired
-    private SmsHomeRecommendSubjectMapper smsHomeRecommendSubjectMapper;
+    private final SmsHomeRecommendSubjectMapper smsHomeRecommendSubjectMapper;
     @Override
     public int create(List<SmsHomeRecommendSubject> recommendSubjectList) {
         for (SmsHomeRecommendSubject recommendSubject : recommendSubjectList) {

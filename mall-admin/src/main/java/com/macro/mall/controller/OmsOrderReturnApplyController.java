@@ -7,30 +7,22 @@ import com.macro.mall.dto.OmsReturnApplyQueryParam;
 import com.macro.mall.dto.OmsUpdateStatusParam;
 import com.macro.mall.model.OmsOrderReturnApply;
 import com.macro.mall.service.OmsOrderReturnApplyService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * 订单退货申请管理Controller
- * Created by macro on 2018/10/18.
- */
-@Controller
-@Api(tags = "OmsOrderReturnApplyController")
+@RestController
 @Tag(name = "OmsOrderReturnApplyController", description = "订单退货申请管理")
 @RequestMapping("/returnApply")
+@RequiredArgsConstructor
 public class OmsOrderReturnApplyController {
-    @Autowired
-    private OmsOrderReturnApplyService returnApplyService;
+    private final OmsOrderReturnApplyService returnApplyService;
 
-    @ApiOperation("分页查询退货申请")
-    @RequestMapping(value = "/list", method = RequestMethod.GET)
-    @ResponseBody
+    @Operation(summary = "分页查询退货申请")
+    @GetMapping("/list")
     public CommonResult<CommonPage<OmsOrderReturnApply>> list(OmsReturnApplyQueryParam queryParam,
                                                               @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
                                                               @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
@@ -38,9 +30,8 @@ public class OmsOrderReturnApplyController {
         return CommonResult.success(CommonPage.restPage(returnApplyList));
     }
 
-    @ApiOperation("批量删除退货申请")
-    @RequestMapping(value = "/delete", method = RequestMethod.POST)
-    @ResponseBody
+    @Operation(summary = "批量删除退货申请")
+    @PostMapping("/delete")
     public CommonResult delete(@RequestParam("ids") List<Long> ids) {
         int count = returnApplyService.delete(ids);
         if (count > 0) {
@@ -49,17 +40,15 @@ public class OmsOrderReturnApplyController {
         return CommonResult.failed();
     }
 
-    @ApiOperation("获取退货申请详情")
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    @ResponseBody
+    @Operation(summary = "获取退货申请详情")
+    @GetMapping("/{id}")
     public CommonResult getItem(@PathVariable Long id) {
         OmsOrderReturnApplyResult result = returnApplyService.getItem(id);
         return CommonResult.success(result);
     }
 
-    @ApiOperation("修改退货申请状态")
-    @RequestMapping(value = "/update/status/{id}", method = RequestMethod.POST)
-    @ResponseBody
+    @Operation(summary = "修改退货申请状态")
+    @PostMapping("/update/status/{id}")
     public CommonResult updateStatus(@PathVariable Long id, @RequestBody OmsUpdateStatusParam statusParam) {
         int count = returnApplyService.updateStatus(id, statusParam);
         if (count > 0) {
@@ -67,5 +56,4 @@ public class OmsOrderReturnApplyController {
         }
         return CommonResult.failed();
     }
-
 }

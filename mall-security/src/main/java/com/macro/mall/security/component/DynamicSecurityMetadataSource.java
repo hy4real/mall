@@ -1,14 +1,13 @@
 package com.macro.mall.security.component;
 
 import cn.hutool.core.util.URLUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.access.intercept.FilterInvocationSecurityMetadataSource;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.util.*;
 
 /**
@@ -18,8 +17,11 @@ import java.util.*;
 public class DynamicSecurityMetadataSource implements FilterInvocationSecurityMetadataSource {
 
     private static Map<String, ConfigAttribute> configAttributeMap = null;
-    @Autowired
-    private DynamicSecurityService dynamicSecurityService;
+    private final DynamicSecurityService dynamicSecurityService;
+
+    public DynamicSecurityMetadataSource(DynamicSecurityService dynamicSecurityService) {
+        this.dynamicSecurityService = dynamicSecurityService;
+    }
 
     @PostConstruct
     public void loadDataSource() {

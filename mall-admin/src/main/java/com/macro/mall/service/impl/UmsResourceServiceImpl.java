@@ -7,7 +7,6 @@ import com.macro.mall.model.UmsResource;
 import com.macro.mall.model.UmsResourceExample;
 import com.macro.mall.service.UmsAdminCacheService;
 import com.macro.mall.service.UmsResourceService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -19,10 +18,14 @@ import java.util.List;
  */
 @Service
 public class UmsResourceServiceImpl implements UmsResourceService {
-    @Autowired
-    private UmsResourceMapper resourceMapper;
-    @Autowired
-    private UmsAdminCacheService adminCacheService;
+    private final UmsResourceMapper resourceMapper;
+    private final UmsAdminCacheService adminCacheService;
+
+    public UmsResourceServiceImpl(UmsResourceMapper resourceMapper, UmsAdminCacheService adminCacheService) {
+        this.resourceMapper = resourceMapper;
+        this.adminCacheService = adminCacheService;
+    }
+
     @Override
     public int create(UmsResource umsResource) {
         umsResource.setCreateTime(new Date());

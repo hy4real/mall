@@ -7,7 +7,7 @@ import com.macro.mall.portal.domain.MemberReadHistory;
 import com.macro.mall.portal.repository.MemberReadHistoryRepository;
 import com.macro.mall.portal.service.MemberReadHistoryService;
 import com.macro.mall.portal.service.UmsMemberService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,16 +23,14 @@ import java.util.List;
  * Created by macro on 2018/8/3.
  */
 @Service
+@RequiredArgsConstructor
 public class MemberReadHistoryServiceImpl implements MemberReadHistoryService {
 
     @Value("${mongo.insert.sqlEnable}")
     private Boolean sqlEnable;
-    @Autowired
-    private PmsProductMapper productMapper;
-    @Autowired
-    private MemberReadHistoryRepository memberReadHistoryRepository;
-    @Autowired
-    private UmsMemberService memberService;
+    private final PmsProductMapper productMapper;
+    private final MemberReadHistoryRepository memberReadHistoryRepository;
+    private final UmsMemberService memberService;
     @Override
     public int create(MemberReadHistory memberReadHistory) {
         if (memberReadHistory.getProductId() == null) {

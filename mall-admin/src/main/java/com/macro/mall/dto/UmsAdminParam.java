@@ -1,32 +1,32 @@
 package com.macro.mall.dto;
 
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Getter;
-import lombok.Setter;
-
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
 
 /**
  * 用户注册参数
  * Created by macro on 2018/4/26.
  */
-@Getter
-@Setter
-public class UmsAdminParam {
+public record UmsAdminParam(
     @NotEmpty
-    @ApiModelProperty(value = "用户名", required = true)
-    private String username;
+    @Schema(description = "用户名", requiredMode = Schema.RequiredMode.REQUIRED)
+    String username,
+
     @NotEmpty
-    @ApiModelProperty(value = "密码", required = true)
-    private String password;
-    @ApiModelProperty(value = "用户头像")
-    private String icon;
+    @Schema(description = "密码", requiredMode = Schema.RequiredMode.REQUIRED)
+    String password,
+
+    @Schema(description = "用户头像")
+    String icon,
+
     @Email
-    @ApiModelProperty(value = "邮箱")
-    private String email;
-    @ApiModelProperty(value = "用户昵称")
-    private String nickName;
-    @ApiModelProperty(value = "备注")
-    private String note;
-}
+    @Schema(description = "邮箱")
+    String email,
+
+    @Schema(description = "用户昵称")
+    String nickName,
+
+    @Schema(description = "备注")
+    String note
+) {}

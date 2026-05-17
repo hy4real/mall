@@ -6,7 +6,7 @@ import com.macro.mall.mapper.SmsHomeAdvertiseMapper;
 import com.macro.mall.model.SmsHomeAdvertise;
 import com.macro.mall.model.SmsHomeAdvertiseExample;
 import com.macro.mall.service.SmsHomeAdvertiseService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
@@ -19,9 +19,9 @@ import java.util.List;
  * Created by macro on 2018/11/7.
  */
 @Service
+@RequiredArgsConstructor
 public class SmsHomeAdvertiseServiceImpl implements SmsHomeAdvertiseService {
-    @Autowired
-    private SmsHomeAdvertiseMapper advertiseMapper;
+    private final SmsHomeAdvertiseMapper advertiseMapper;
 
     @Override
     public int create(SmsHomeAdvertise advertise) {

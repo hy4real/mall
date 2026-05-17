@@ -1,6 +1,6 @@
 package com.macro.mall.model;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
@@ -9,13 +9,13 @@ public class PmsProductLadder implements Serializable {
 
     private Long productId;
 
-    @ApiModelProperty(value = "满足的商品数量")
+    @Schema(description = "满足的商品数量")
     private Integer count;
 
-    @ApiModelProperty(value = "折扣")
+    @Schema(description = "折扣")
     private BigDecimal discount;
 
-    @ApiModelProperty(value = "折后价格")
+    @Schema(description = "折后价格")
     private BigDecimal price;
 
     private static final long serialVersionUID = 1L;

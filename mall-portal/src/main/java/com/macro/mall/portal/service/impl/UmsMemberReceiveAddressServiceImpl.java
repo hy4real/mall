@@ -6,7 +6,7 @@ import com.macro.mall.model.UmsMemberReceiveAddress;
 import com.macro.mall.model.UmsMemberReceiveAddressExample;
 import com.macro.mall.portal.service.UmsMemberReceiveAddressService;
 import com.macro.mall.portal.service.UmsMemberService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -17,11 +17,10 @@ import java.util.List;
  * Created by macro on 2018/8/28.
  */
 @Service
+@RequiredArgsConstructor
 public class UmsMemberReceiveAddressServiceImpl implements UmsMemberReceiveAddressService {
-    @Autowired
-    private UmsMemberService memberService;
-    @Autowired
-    private UmsMemberReceiveAddressMapper addressMapper;
+    private final UmsMemberService memberService;
+    private final UmsMemberReceiveAddressMapper addressMapper;
     @Override
     public int add(UmsMemberReceiveAddress address) {
         UmsMember currentMember = memberService.getCurrentMember();

@@ -1,22 +1,18 @@
 package com.macro.mall.dto;
 
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
-import javax.validation.constraints.NotEmpty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotEmpty;
 
 /**
  * 用户登录参数
  * Created by macro on 2018/4/26.
  */
-@Data
-@EqualsAndHashCode
-public class UmsAdminLoginParam {
+public record UmsAdminLoginParam(
     @NotEmpty
-    @ApiModelProperty(value = "用户名",required = true)
-    private String username;
+    @Schema(description = "用户名", requiredMode = Schema.RequiredMode.REQUIRED)
+    String username,
+
     @NotEmpty
-    @ApiModelProperty(value = "密码",required = true)
-    private String password;
-}
+    @Schema(description = "密码", requiredMode = Schema.RequiredMode.REQUIRED)
+    String password
+) {}

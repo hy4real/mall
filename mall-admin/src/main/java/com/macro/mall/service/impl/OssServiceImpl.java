@@ -11,11 +11,11 @@ import com.macro.mall.dto.OssPolicyResult;
 import com.macro.mall.service.OssService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -24,6 +24,7 @@ import java.util.Date;
  * Created by macro on 2018/5/17.
  */
 @Service
+@RequiredArgsConstructor
 public class OssServiceImpl implements OssService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(OssServiceImpl.class);
@@ -40,8 +41,7 @@ public class OssServiceImpl implements OssService {
 	@Value("${aliyun.oss.dir.prefix}")
 	private String ALIYUN_OSS_DIR_PREFIX;
 
-	@Autowired
-	private OSSClient ossClient;
+	private final OSSClient ossClient;
 
 	/**
 	 * 签名生成

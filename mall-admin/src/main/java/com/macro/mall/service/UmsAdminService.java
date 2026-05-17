@@ -6,7 +6,6 @@ import com.macro.mall.model.UmsAdmin;
 import com.macro.mall.model.UmsResource;
 import com.macro.mall.model.UmsRole;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -62,7 +61,6 @@ public interface UmsAdminService {
     /**
      * 修改用户角色关系
      */
-    @Transactional
     int updateRole(Long adminId, List<Long> roleIds);
 
     /**

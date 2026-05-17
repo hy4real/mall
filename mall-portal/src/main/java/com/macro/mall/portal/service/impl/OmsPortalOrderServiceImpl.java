@@ -15,7 +15,7 @@ import com.macro.mall.portal.dao.SmsCouponHistoryDao;
 import com.macro.mall.portal.domain.*;
 import com.macro.mall.portal.service.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -32,41 +32,27 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
-    @Autowired
-    private UmsMemberService memberService;
-    @Autowired
-    private OmsCartItemService cartItemService;
-    @Autowired
-    private UmsMemberReceiveAddressService memberReceiveAddressService;
-    @Autowired
-    private UmsMemberCouponService memberCouponService;
-    @Autowired
-    private UmsIntegrationConsumeSettingMapper integrationConsumeSettingMapper;
-    @Autowired
-    private PmsSkuStockMapper skuStockMapper;
-    @Autowired
-    private SmsCouponHistoryDao couponHistoryDao;
-    @Autowired
-    private OmsOrderMapper orderMapper;
-    @Autowired
-    private PortalOrderItemDao orderItemDao;
-    @Autowired
-    private SmsCouponHistoryMapper couponHistoryMapper;
-    @Autowired
-    private RedisService redisService;
+    private final UmsMemberService memberService;
+    private final OmsCartItemService cartItemService;
+    private final UmsMemberReceiveAddressService memberReceiveAddressService;
+    private final UmsMemberCouponService memberCouponService;
+    private final UmsIntegrationConsumeSettingMapper integrationConsumeSettingMapper;
+    private final PmsSkuStockMapper skuStockMapper;
+    private final SmsCouponHistoryDao couponHistoryDao;
+    private final OmsOrderMapper orderMapper;
+    private final PortalOrderItemDao orderItemDao;
+    private final SmsCouponHistoryMapper couponHistoryMapper;
+    private final RedisService redisService;
     @Value("${redis.key.orderId}")
     private String REDIS_KEY_ORDER_ID;
     @Value("${redis.database}")
     private String REDIS_DATABASE;
-    @Autowired
-    private PortalOrderDao portalOrderDao;
-    @Autowired
-    private OmsOrderSettingMapper orderSettingMapper;
-    @Autowired
-    private OmsOrderItemMapper orderItemMapper;
-    @Autowired
-    private CancelOrderSender cancelOrderSender;
+    private final PortalOrderDao portalOrderDao;
+    private final OmsOrderSettingMapper orderSettingMapper;
+    private final OmsOrderItemMapper orderItemMapper;
+    private final CancelOrderSender cancelOrderSender;
 
     @Override
     public ConfirmOrderResult generateConfirmOrder(List<Long> cartIds) {

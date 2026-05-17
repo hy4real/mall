@@ -6,7 +6,7 @@ import com.macro.mall.mapper.SmsFlashPromotionMapper;
 import com.macro.mall.model.SmsFlashPromotion;
 import com.macro.mall.model.SmsFlashPromotionExample;
 import com.macro.mall.service.SmsFlashPromotionService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -17,9 +17,9 @@ import java.util.List;
  * Created by macro on 2018/11/16.
  */
 @Service
+@RequiredArgsConstructor
 public class SmsFlashPromotionServiceImpl implements SmsFlashPromotionService {
-    @Autowired
-    private SmsFlashPromotionMapper flashPromotionMapper;
+    private final SmsFlashPromotionMapper flashPromotionMapper;
 
     @Override
     public int create(SmsFlashPromotion flashPromotion) {

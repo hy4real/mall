@@ -11,7 +11,7 @@ import com.macro.mall.portal.domain.CartPromotionItem;
 import com.macro.mall.portal.service.OmsCartItemService;
 import com.macro.mall.portal.service.OmsPromotionService;
 import com.macro.mall.portal.service.UmsMemberService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -25,15 +25,12 @@ import java.util.stream.Collectors;
  * Created by macro on 2018/8/2.
  */
 @Service
+@RequiredArgsConstructor
 public class OmsCartItemServiceImpl implements OmsCartItemService {
-    @Autowired
-    private OmsCartItemMapper cartItemMapper;
-    @Autowired
-    private PortalProductDao productDao;
-    @Autowired
-    private OmsPromotionService promotionService;
-    @Autowired
-    private UmsMemberService memberService;
+    private final OmsCartItemMapper cartItemMapper;
+    private final PortalProductDao productDao;
+    private final OmsPromotionService promotionService;
+    private final UmsMemberService memberService;
 
     @Override
     public int add(OmsCartItem cartItem) {

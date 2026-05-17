@@ -4,7 +4,7 @@ import com.macro.mall.model.UmsResource;
 import com.macro.mall.security.component.DynamicSecurityService;
 import com.macro.mall.service.UmsAdminService;
 import com.macro.mall.service.UmsResourceService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.ConfigAttribute;
@@ -14,21 +14,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * mall-security模块相关配置
- * Created by macro on 2019/11/9.
- */
 @Configuration
+@RequiredArgsConstructor
 public class MallSecurityConfig {
 
-    @Autowired
-    private UmsAdminService adminService;
-    @Autowired
-    private UmsResourceService resourceService;
+    private final UmsAdminService adminService;
+    private final UmsResourceService resourceService;
 
     @Bean
     public UserDetailsService userDetailsService() {
-        //获取登录用户信息
         return username -> adminService.loadUserByUsername(username);
     }
 

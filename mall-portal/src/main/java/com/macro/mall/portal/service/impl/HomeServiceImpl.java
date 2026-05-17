@@ -9,7 +9,7 @@ import com.macro.mall.portal.domain.HomeContentResult;
 import com.macro.mall.portal.domain.HomeFlashPromotion;
 import com.macro.mall.portal.service.HomeService;
 import com.macro.mall.portal.util.DateUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -21,21 +21,15 @@ import java.util.List;
  * Created by macro on 2019/1/28.
  */
 @Service
+@RequiredArgsConstructor
 public class HomeServiceImpl implements HomeService {
-    @Autowired
-    private SmsHomeAdvertiseMapper advertiseMapper;
-    @Autowired
-    private HomeDao homeDao;
-    @Autowired
-    private SmsFlashPromotionMapper flashPromotionMapper;
-    @Autowired
-    private SmsFlashPromotionSessionMapper promotionSessionMapper;
-    @Autowired
-    private PmsProductMapper productMapper;
-    @Autowired
-    private PmsProductCategoryMapper productCategoryMapper;
-    @Autowired
-    private CmsSubjectMapper subjectMapper;
+    private final SmsHomeAdvertiseMapper advertiseMapper;
+    private final HomeDao homeDao;
+    private final SmsFlashPromotionMapper flashPromotionMapper;
+    private final SmsFlashPromotionSessionMapper promotionSessionMapper;
+    private final PmsProductMapper productMapper;
+    private final PmsProductCategoryMapper productCategoryMapper;
+    private final CmsSubjectMapper subjectMapper;
 
     @Override
     public HomeContentResult content() {

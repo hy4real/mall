@@ -1,9 +1,9 @@
 package com.macro.mall.portal.component;
 
 import com.macro.mall.portal.service.OmsPortalOrderService;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -12,10 +12,10 @@ import org.springframework.stereotype.Component;
  * Created by macro on 2018/8/24.
  */
 //@Component
+@RequiredArgsConstructor
 public class OrderTimeOutCancelTask {
     private final Logger LOGGER = LoggerFactory.getLogger(OrderTimeOutCancelTask.class);
-    @Autowired
-    private OmsPortalOrderService portalOrderService;
+    private final OmsPortalOrderService portalOrderService;
 
     /**
      * cron表达式：Seconds Minutes Hours DayOfMonth Month DayOfWeek [Year]

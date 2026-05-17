@@ -6,22 +6,17 @@ import com.macro.mall.mapper.PmsSkuStockMapper;
 import com.macro.mall.model.PmsSkuStock;
 import com.macro.mall.model.PmsSkuStockExample;
 import com.macro.mall.service.PmsSkuStockService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * 商品SKU库存管理Service实现类
- * Created by macro on 2018/4/27.
- */
 @Service
+@RequiredArgsConstructor
 public class PmsSkuStockServiceImpl implements PmsSkuStockService {
-    @Autowired
-    private PmsSkuStockMapper skuStockMapper;
-    @Autowired
-    private PmsSkuStockDao skuStockDao;
+    private final PmsSkuStockMapper skuStockMapper;
+    private final PmsSkuStockDao skuStockDao;
 
     @Override
     public List<PmsSkuStock> getList(Long pid, String keyword) {

@@ -6,7 +6,7 @@ import com.macro.mall.mapper.SmsCouponHistoryMapper;
 import com.macro.mall.model.SmsCouponHistory;
 import com.macro.mall.model.SmsCouponHistoryExample;
 import com.macro.mall.service.SmsCouponHistoryService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,9 +16,9 @@ import java.util.List;
  * Created by macro on 2018/11/6.
  */
 @Service
+@RequiredArgsConstructor
 public class SmsCouponHistoryServiceImpl implements SmsCouponHistoryService {
-    @Autowired
-    private SmsCouponHistoryMapper historyMapper;
+    private final SmsCouponHistoryMapper historyMapper;
     @Override
     public List<SmsCouponHistory> list(Long couponId, Integer useStatus, String orderSn, Integer pageSize, Integer pageNum) {
         PageHelper.startPage(pageNum,pageSize);

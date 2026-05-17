@@ -7,7 +7,7 @@ import com.macro.mall.model.SmsFlashPromotionSessionExample;
 import com.macro.mall.service.SmsFlashPromotionProductRelationService;
 import com.macro.mall.service.SmsFlashPromotionSessionService;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -19,11 +19,10 @@ import java.util.List;
  * Created by macro on 2018/11/16.
  */
 @Service
+@RequiredArgsConstructor
 public class SmsFlashPromotionSessionServiceImpl implements SmsFlashPromotionSessionService {
-    @Autowired
-    private SmsFlashPromotionSessionMapper promotionSessionMapper;
-    @Autowired
-    private SmsFlashPromotionProductRelationService relationService;
+    private final SmsFlashPromotionSessionMapper promotionSessionMapper;
+    private final SmsFlashPromotionProductRelationService relationService;
 
     @Override
     public int create(SmsFlashPromotionSession promotionSession) {

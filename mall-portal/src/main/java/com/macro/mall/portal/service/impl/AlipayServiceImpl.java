@@ -15,7 +15,7 @@ import com.macro.mall.portal.domain.AliPayParam;
 import com.macro.mall.portal.service.AlipayService;
 import com.macro.mall.portal.service.OmsPortalOrderService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -28,15 +28,12 @@ import java.util.Map;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class AlipayServiceImpl implements AlipayService {
-    @Autowired
-    private AlipayConfig alipayConfig;
-    @Autowired
-    private AlipayClient alipayClient;
-    @Autowired
-    private OmsOrderMapper orderMapper;
-    @Autowired
-    private OmsPortalOrderService portalOrderService;
+    private final AlipayConfig alipayConfig;
+    private final AlipayClient alipayClient;
+    private final OmsOrderMapper orderMapper;
+    private final OmsPortalOrderService portalOrderService;
     @Override
     public String pay(AliPayParam aliPayParam) {
         AlipayTradePagePayRequest request = new AlipayTradePagePayRequest();
