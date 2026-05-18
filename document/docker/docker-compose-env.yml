@@ -13,6 +13,7 @@ volumes:
   logstash_conf:
   mongo_db:
   minio_data:
+  pg_data:
 
 services:
   mysql:
@@ -116,3 +117,15 @@ services:
     ports:
       - 9090:9000
       - 9001:9001
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: mall_search
+      POSTGRES_USER: mall
+      POSTGRES_PASSWORD: mall
+    ports:
+      - 5433:5432
+    volumes:
+      - pg_data:/var/lib/postgresql/data

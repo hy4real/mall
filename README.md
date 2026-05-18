@@ -198,6 +198,17 @@ mall
 
 加微信群交流，关注公众号「**macrozheng**」，回复「**加群**」即可。
 
+## mall-search-modern
+
+RAG 验证脚本：
+
+```bash
+cd mall-search-modern
+mvn test
+scripts/rag-smoke.sh
+scripts/rag-eval.sh
+```
+
 ![公众号图片](./document/resource/qrcode_for_macrozheng_258.jpg)
 
 ## 许可证

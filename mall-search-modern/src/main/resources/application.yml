@@ -20,11 +20,15 @@ mybatis:
 
 app:
   embedding:
-    api-url: https://api.siliconflow.cn
-    model: BAAI/bge-m3
+    api-url: http://localhost:11434
+    model: qwen3-embedding:0.6b
     api-key: ${SILICONFLOW_API_KEY:}
     dims: 1024
     timeout-ms: 10000
+  chat:
+    api-url: http://localhost:11434
+    model: qwen3:1.7b
+    timeout-ms: 30000
 
 logging:
   level:

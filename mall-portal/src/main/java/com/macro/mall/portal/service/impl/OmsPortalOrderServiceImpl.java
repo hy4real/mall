@@ -20,9 +20,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -39,7 +44,6 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
     private final UmsMemberReceiveAddressService memberReceiveAddressService;
     private final UmsMemberCouponService memberCouponService;
     private final UmsIntegrationConsumeSettingMapper integrationConsumeSettingMapper;
-    private final PmsSkuStockMapper skuStockMapper;
     private final SmsCouponHistoryDao couponHistoryDao;
     private final OmsOrderMapper orderMapper;
     private final PortalOrderItemDao orderItemDao;
@@ -78,8 +82,9 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
         return result;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
-    public Map<String, Object> generateOrder(OrderParam orderParam) {
+    public GenerateOrderResult generateOrder(OrderParam orderParam) {
         List<OmsOrderItem> orderItemList = new ArrayList<>();
         //校验收货地址
         if(orderParam.memberReceiveAddressId()==null){
@@ -229,17 +234,34 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
         }
         //删除购物车中的下单商品
         deleteCartItemList(cartPromotionItemList, currentMember);
-        //发送延迟消息取消订单
-        sendDelayMessageCancelOrder(order.getId());
-        Map<String, Object> result = new HashMap<>();
-        result.put("order", order);
-        result.put("orderItemList", orderItemList);
-        return result;
+        //发送延迟消息取消订单（优先在事务提交后执行，测试/非事务场景下直接发送）
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    sendDelayMessageCancelOrder(order.getId());
+                }
+            });
+        } else {
+            sendDelayMessageCancelOrder(order.getId());
+        }
+        return new GenerateOrderResult(order, orderItemList);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public Integer paySuccess(Long orderId, Integer payType) {
-        //修改订单支付状态
+        //先扣减真实库存，再改订单状态，避免状态已改但库存扣减失败导致超卖
+        OmsOrderDetail orderDetail = portalOrderDao.getDetail(orderId);
+        int totalCount = 0;
+        for (OmsOrderItem orderItem : orderDetail.getOrderItemList()) {
+            int count = portalOrderDao.reduceSkuStock(orderItem.getProductSkuId(),orderItem.getProductQuantity());
+            if(count==0){
+                Asserts.fail("库存不足，无法扣减！");
+            }
+            totalCount+=count;
+        }
+        //库存扣减全部成功后，再修改订单支付状态
         OmsOrder order = new OmsOrder();
         order.setId(orderId);
         order.setStatus(1);
@@ -250,20 +272,9 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
                 .andIdEqualTo(order.getId())
                 .andDeleteStatusEqualTo(0)
                 .andStatusEqualTo(0);
-        //只修改未付款状态的订单
         int updateCount = orderMapper.updateByExampleSelective(order, orderExample);
         if(updateCount==0){
             Asserts.fail("订单不存在或订单状态不是未支付！");
-        }
-        //恢复所有下单商品的锁定库存，扣减真实库存
-        OmsOrderDetail orderDetail = portalOrderDao.getDetail(orderId);
-        int totalCount = 0;
-        for (OmsOrderItem orderItem : orderDetail.getOrderItemList()) {
-            int count = portalOrderDao.reduceSkuStock(orderItem.getProductSkuId(),orderItem.getProductQuantity());
-            if(count==0){
-                Asserts.fail("库存不足，无法扣减！");
-            }
-            totalCount+=count;
         }
         return totalCount;
     }
@@ -297,39 +308,38 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
         return timeOutOrders.size();
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void cancelOrder(Long orderId) {
-        //查询未付款的取消订单
+        //原子操作：仅当订单状态为0（未支付）且未删除时才取消
+        OmsOrder cancelOrder = new OmsOrder();
+        cancelOrder.setId(orderId);
+        cancelOrder.setStatus(4);
         OmsOrderExample example = new OmsOrderExample();
         example.createCriteria().andIdEqualTo(orderId).andStatusEqualTo(0).andDeleteStatusEqualTo(0);
-        List<OmsOrder> cancelOrderList = orderMapper.selectByExample(example);
-        if (CollectionUtils.isEmpty(cancelOrderList)) {
+        int updated = orderMapper.updateByExampleSelective(cancelOrder, example);
+        if (updated == 0) {
             return;
         }
-        OmsOrder cancelOrder = cancelOrderList.get(0);
-        if (cancelOrder != null) {
-            //修改订单状态为取消
-            cancelOrder.setStatus(4);
-            orderMapper.updateByPrimaryKeySelective(cancelOrder);
-            OmsOrderItemExample orderItemExample = new OmsOrderItemExample();
-            orderItemExample.createCriteria().andOrderIdEqualTo(orderId);
-            List<OmsOrderItem> orderItemList = orderItemMapper.selectByExample(orderItemExample);
-            //解除订单商品库存锁定
-            if (!CollectionUtils.isEmpty(orderItemList)) {
-                for (OmsOrderItem orderItem : orderItemList) {
-                    int count = portalOrderDao.releaseStockBySkuId(orderItem.getProductSkuId(),orderItem.getProductQuantity());
-                    if(count==0){
-                        Asserts.fail("库存不足，无法释放！");
-                    }
+        OmsOrderItemExample orderItemExample = new OmsOrderItemExample();
+        orderItemExample.createCriteria().andOrderIdEqualTo(orderId);
+        List<OmsOrderItem> orderItemList = orderItemMapper.selectByExample(orderItemExample);
+        //解除订单商品库存锁定
+        if (!CollectionUtils.isEmpty(orderItemList)) {
+            for (OmsOrderItem orderItem : orderItemList) {
+                int count = portalOrderDao.releaseStockBySkuId(orderItem.getProductSkuId(),orderItem.getProductQuantity());
+                if(count==0){
+                    Asserts.fail("库存不足，无法释放！");
                 }
             }
-            //修改优惠券使用状态
-            updateCouponStatus(cancelOrder.getCouponId(), cancelOrder.getMemberId(), 0);
-            //返还使用积分
-            if (cancelOrder.getUseIntegration() != null) {
-                UmsMember member = memberService.getById(cancelOrder.getMemberId());
-                memberService.updateIntegration(cancelOrder.getMemberId(), member.getIntegration() + cancelOrder.getUseIntegration());
-            }
+        }
+        //修改优惠券使用状态
+        OmsOrder order = orderMapper.selectByPrimaryKey(orderId);
+        updateCouponStatus(order.getCouponId(), order.getMemberId(), 0);
+        //返还使用积分
+        if (order.getUseIntegration() != null) {
+            UmsMember member = memberService.getById(order.getMemberId());
+            memberService.updateIntegration(order.getMemberId(), member.getIntegration() + order.getUseIntegration());
         }
     }
 
@@ -352,10 +362,13 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
         if(order.getStatus()!=2){
             Asserts.fail("该订单还未发货！");
         }
-        order.setStatus(3);
-        order.setConfirmStatus(1);
-        order.setReceiveTime(new Date());
-        orderMapper.updateByPrimaryKey(order);
+        OmsOrder updateOrder = new OmsOrder();
+        updateOrder.setStatus(3);
+        updateOrder.setConfirmStatus(1);
+        updateOrder.setReceiveTime(new Date());
+        OmsOrderExample example = new OmsOrderExample();
+        example.createCriteria().andIdEqualTo(orderId).andStatusEqualTo(2).andMemberIdEqualTo(member.getId());
+        orderMapper.updateByExampleSelective(updateOrder, example);
     }
 
     @Override
@@ -421,8 +434,12 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
             Asserts.fail("不能删除他人订单！");
         }
         if(order.getStatus()==3||order.getStatus()==4){
-            order.setDeleteStatus(1);
-            orderMapper.updateByPrimaryKey(order);
+            OmsOrder update = new OmsOrder();
+            update.setDeleteStatus(1);
+            OmsOrderExample example = new OmsOrderExample();
+            example.createCriteria().andIdEqualTo(orderId).andMemberIdEqualTo(member.getId())
+                    .andStatusIn(List.of(3, 4));
+            orderMapper.updateByExampleSelective(update, example);
         }else{
             Asserts.fail("只能删除已完成或已关闭的订单！");
         }
@@ -442,12 +459,14 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
         }
     }
 
+    private static final DateTimeFormatter ORDER_SN_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
+
     /**
      * 生成18位订单编号:8位日期+2位平台号码+2位支付方式+6位以上自增id
      */
     private String generateOrderSn(OmsOrder order) {
         StringBuilder sb = new StringBuilder();
-        String date = new SimpleDateFormat("yyyyMMdd").format(new Date());
+        String date = LocalDate.now().format(ORDER_SN_DATE_FORMAT);
         String key = REDIS_DATABASE+":"+ REDIS_KEY_ORDER_ID + date;
         Long increment = redisService.incr(key, 1);
         sb.append(date);
@@ -735,8 +754,6 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
      */
     private void lockStock(List<CartPromotionItem> cartPromotionItemList) {
         for (CartPromotionItem cartPromotionItem : cartPromotionItemList) {
-            PmsSkuStock skuStock = skuStockMapper.selectByPrimaryKey(cartPromotionItem.getProductSkuId());
-            skuStock.setLockStock(skuStock.getLockStock() + cartPromotionItem.getQuantity());
             int count = portalOrderDao.lockStockBySkuId(cartPromotionItem.getProductSkuId(),cartPromotionItem.getQuantity());
             if(count==0){
                 Asserts.fail("库存不足，无法下单");

@@ -57,9 +57,10 @@ public class EsProductServiceImpl implements EsProductService {
             return 0;
         }
 
-        // Generate embedding vectors for product names
+        // Generate embedding vectors from rich product text
         List<String> names = esProductList.stream()
-                .map(EsProduct::getName)
+                .map(p -> buildEmbeddingText(p.getName(), p.getSubTitle(), p.getKeywords(),
+                        p.getBrandName(), p.getProductCategoryName()))
                 .toList();
         List<float[]> vectors = embeddingService.embedBatch(names);
         for (int i = 0; i < esProductList.size(); i++) {
@@ -84,7 +85,9 @@ public class EsProductServiceImpl implements EsProductService {
         List<EsProduct> esProductList = productDao.getAllEsProductList(id);
         if (!esProductList.isEmpty()) {
             EsProduct product = esProductList.getFirst();
-            product.setNameVector(embeddingService.embed(product.getName()));
+            String text = buildEmbeddingText(product.getName(), product.getSubTitle(),
+                    product.getKeywords(), product.getBrandName(), product.getProductCategoryName());
+            product.setNameVector(embeddingService.embed(text));
             return productRepository.save(product);
         }
         return null;
@@ -212,12 +215,14 @@ public class EsProductServiceImpl implements EsProductService {
 
             SearchResponse<EsProduct> response = esClient.search(s -> s
                             .index("pms")
+                            .source(src -> src.filter(f -> f.excludes("nameVector")))
                             .size(pageable.getPageSize())
                             .from((int) pageable.getOffset())
                             .query(buildKeywordQuery(keyword))
                             .knn(k -> k
                                     .field("nameVector")
                                     .queryVector(queryVectorList)
+                                    .filter(buildKeywordQuery(keyword))
                                     .numCandidates(50)
                                     .k(pageSize)
                             )
@@ -306,6 +311,7 @@ public class EsProductServiceImpl implements EsProductService {
     private Page<EsProduct> doSearch(Query query, Pageable pageable) {
         var request = SearchRequest.of(s -> s
                 .index("pms")
+                .source(src -> src.filter(f -> f.excludes("nameVector")))
                 .query(query)
                 .sort(buildSortOptions(0))
                 .from((int) pageable.getOffset())
@@ -380,5 +386,22 @@ public class EsProductServiceImpl implements EsProductService {
         }
 
         return new EsProductRelatedInfo(brandNames, categoryNames, productAttrs);
+    }
+
+    private static String buildEmbeddingText(String name, String subTitle, String keywords,
+                                             String brandName, String categoryName) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(name);
+        appendIfNotBlank(sb, subTitle);
+        appendIfNotBlank(sb, keywords);
+        appendIfNotBlank(sb, brandName);
+        appendIfNotBlank(sb, categoryName);
+        return sb.toString();
+    }
+
+    private static void appendIfNotBlank(StringBuilder sb, String value) {
+        if (value != null && !value.isBlank()) {
+            sb.append(' ').append(value);
+        }
     }
 }

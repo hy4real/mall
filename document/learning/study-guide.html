@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mall 项目学习 & 执行路线</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: #333;
+    --text: #e0e0e0;
+    --text-dim: #888;
+    --accent: #4fc3f7;
+    --green: #66bb6a;
+    --orange: #ffa726;
+    --red: #ef5350;
+    --purple: #ab47bc;
+    --yellow: #ffee58;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg); color: var(--text);
+    line-height: 1.7; padding: 2rem;
+    max-width: 1000px; margin: 0 auto;
+  }
+  h1 { font-size: 1.8rem; margin-bottom: 0.3rem; }
+  .subtitle { color: var(--text-dim); font-size: 0.95rem; margin-bottom: 2.5rem; }
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem; text-align: center;
+  }
+  .stat-num { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
+  .stat-label { font-size: 0.8rem; color: var(--text-dim); margin-top: 0.2rem; }
+
+  .priority-tag {
+    display: inline-block; font-size: 0.7rem; font-weight: 600;
+    padding: 2px 8px; border-radius: 4px; text-transform: uppercase;
+    letter-spacing: 0.5px; vertical-align: middle;
+  }
+  .p1 { background: var(--red); color: #fff; }
+  .p2 { background: var(--orange); color: #000; }
+  .p3 { background: var(--accent); color: #000; }
+  .p4 { background: var(--purple); color: #fff; }
+  .p5 { background: var(--green); color: #000; }
+  .must { background: var(--red); color: #fff; font-size: 0.65rem; padding: 1px 5px; border-radius: 3px; margin-left: 0.5rem; }
+
+  .section {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; margin-bottom: 1.5rem; overflow: hidden;
+  }
+  .section-header {
+    padding: 1rem 1.2rem; cursor: pointer;
+    display: flex; align-items: center; gap: 0.8rem;
+    user-select: none; transition: background 0.15s;
+  }
+  .section-header:hover { background: var(--surface2); }
+  .section-header h2 { font-size: 1.1rem; flex: 1; }
+  .section-header .arrow {
+    font-size: 0.8rem; color: var(--text-dim);
+    transition: transform 0.2s;
+  }
+  .section.open .arrow { transform: rotate(90deg); }
+  .section-body { display: none; padding: 0 1.2rem 1.2rem; }
+  .section.open .section-body { display: block; }
+
+  .file-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 0.8rem 1rem; margin: 0.6rem 0;
+  }
+  .file-path {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.82rem; color: var(--accent); word-break: break-all;
+  }
+  .file-desc { font-size: 0.88rem; color: var(--text-dim); margin-top: 0.3rem; }
+  .file-lines { font-size: 0.75rem; color: var(--text-dim); }
+
+  .why {
+    background: #1a2a1a; border-left: 3px solid var(--green);
+    padding: 0.7rem 1rem; margin: 0.8rem 0; border-radius: 0 6px 6px 0;
+    font-size: 0.9rem;
+  }
+  .why strong { color: var(--green); }
+
+  .pitfall {
+    background: #2a1a1a; border-left: 3px solid var(--red);
+    padding: 0.7rem 1rem; margin: 0.8rem 0; border-radius: 0 6px 6px 0;
+    font-size: 0.9rem;
+  }
+  .pitfall strong { color: var(--red); }
+
+  .deliverable {
+    background: #1a1a2a; border-left: 3px solid var(--accent);
+    padding: 0.7rem 1rem; margin: 0.8rem 0; border-radius: 0 6px 6px 0;
+    font-size: 0.9rem;
+  }
+  .deliverable strong { color: var(--accent); }
+
+  .cmd {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    background: #111; border: 1px solid var(--border);
+    padding: 0.6rem 0.8rem; border-radius: 6px;
+    font-size: 0.82rem; margin: 0.5rem 0;
+    overflow-x: auto; white-space: pre-wrap;
+    color: var(--green);
+  }
+
+  .checklist { list-style: none; padding: 0; }
+  .checklist li {
+    padding: 0.4rem 0; font-size: 0.92rem;
+    display: flex; align-items: flex-start; gap: 0.5rem;
+  }
+  .checklist li::before {
+    content: '☐'; color: var(--text-dim); flex-shrink: 0; margin-top: 1px;
+  }
+
+  .time-tag {
+    display: inline-block; font-size: 0.72rem;
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 1px 6px; border-radius: 3px; color: var(--text-dim);
+  }
+
+  pre {
+    background: #111; border: 1px solid var(--border);
+    padding: 0.8rem; border-radius: 6px; overflow-x: auto;
+    font-size: 0.82rem; line-height: 1.5; margin: 0.5rem 0;
+  }
+  code { font-family: 'SF Mono', 'Fira Code', monospace; }
+  .kw { color: #c792ea; }
+  .ty { color: #ffcb6b; }
+  .str { color: #c3e88d; }
+  .cm { color: #546e7a; }
+  .fn { color: #82aaff; }
+  .an { color: #f07178; }
+
+  .nav {
+    position: fixed; top: 2rem; right: 2rem;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.8rem; font-size: 0.78rem;
+    max-width: 200px; z-index: 10;
+  }
+  .nav a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.25rem 0; transition: color 0.15s;
+  }
+  .nav a:hover { color: var(--accent); }
+  .nav-title { color: var(--text); font-weight: 600; margin-bottom: 0.3rem; }
+  .nav-divider { border-top: 1px solid var(--border); margin: 0.4rem 0; }
+  @media (max-width: 1200px) { .nav { display: none; } }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .phase-banner {
+    background: linear-gradient(135deg, #1a1a2a, #1a2a1a);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 1rem 1.2rem; margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+  }
+  .phase-banner h3 { color: var(--accent); font-size: 1rem; margin-bottom: 0.3rem; }
+
+  .roadmap {
+    display: flex; gap: 0; margin-bottom: 2rem; overflow-x: auto;
+    border: 1px solid var(--border); border-radius: 8px;
+  }
+  .roadmap-item {
+    flex: 1; min-width: 150px; padding: 0.8rem;
+    border-right: 1px solid var(--border); text-align: center;
+    font-size: 0.82rem;
+  }
+  .roadmap-item:last-child { border-right: none; }
+  .roadmap-item .rm-phase { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.2rem; }
+  .roadmap-item .rm-desc { color: var(--text-dim); }
+  .rm-done { background: #1a2a1a; }
+  .rm-current { background: #2a2a1a; border-bottom: 2px solid var(--orange); }
+  .rm-next { background: var(--surface); }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-title">全部必做</div>
+  <a href="#p1">P1 安全认证链路</a>
+  <a href="#p2">P2 现代化复盘</a>
+  <div class="nav-divider"></div>
+  <a href="#p3">P3 核心业务流程</a>
+  <a href="#p4">P4 补测试 + 重构</a>
+  <a href="#p5">P5 mall-portal 验证</a>
+  <div class="nav-divider"></div>
+  <a href="#p6">P6 语义搜索</a>
+  <a href="#p7">P7 智能客服 RAG</a>
+  <a href="#p8">P8 推荐 + 异常检测</a>
+</nav>
+
+<h1>Mall 项目执行路线</h1>
+<p class="subtitle">全量执行计划：学习 → 工程实践 → AI 集成。所有项均为必做。</p>
+
+<!-- Roadmap overview -->
+<div class="roadmap">
+  <div class="roadmap-item rm-done">
+    <div class="rm-phase" style="color:var(--green)">已完成</div>
+    <div class="rm-desc">现代化改造<br>Spring Boot 3<br>构造器注入<br>DTO→Record</div>
+  </div>
+  <div class="roadmap-item rm-done">
+    <div class="rm-phase" style="color:var(--green)">已完成</div>
+    <div class="rm-desc">读代码<br>理解认证+业务<br>P1 ~ P3</div>
+  </div>
+  <div class="roadmap-item rm-done">
+    <div class="rm-phase" style="color:var(--green)">已完成</div>
+    <div class="rm-desc">工程实践<br>38个测试+重构<br>Portal验证</div>
+  </div>
+  <div class="roadmap-item rm-current">
+    <div class="rm-phase" style="color:var(--purple)">Phase C</div>
+    <div class="rm-desc">AI 集成<br>pgvector+RAG+推荐<br>P6 ~ P8</div>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-num">246</div><div class="stat-label">已改动文件</div></div>
+  <div class="stat"><div class="stat-num">-1101</div><div class="stat-label">净减代码行</div></div>
+  <div class="stat"><div class="stat-num">38</div><div class="stat-label">单元测试</div></div>
+  <div class="stat"><div class="stat-num">5/8</div><div class="stat-label">已完成任务</div></div>
+</div>
+
+<!-- ============================== PHASE A ============================== -->
+<div class="phase-banner">
+  <h3>Phase A — 读代码、理解架构</h3>
+  先看懂，再动手。P1→P2→P3 按顺序来。
+</div>
+
+<!-- ========== P1: Security ========== -->
+<div id="p1" class="section open">
+  <div class="section-header">
+    <span class="priority-tag p1">P1</span>
+    <h2>Spring Security 6 认证链路 <span class="must">必做</span> <span class="time-tag">~2h</span></h2>
+    <span class="arrow">▶</span>
+  </div>
+  <div class="section-body">
+    <div class="why"><strong>为什么最优先：</strong>我们刚修了一个真实 bug — DynamicSecurityFilter 在 JWT 解析前执行鉴权，导致 401。Spring Security 5→6 最经典的坑，面试高频题。</div>
+
+    <p style="margin: 0.8rem 0; font-size: 0.92rem;">按顺序读，跟着请求流走一遍认证链路：</p>
+
+    <div class="file-card">
+      <div class="file-path">mall-security/src/.../config/SecurityConfig.java</div>
+      <div class="file-desc">入口：SecurityFilterChain 定义过滤器链。看 addFilterBefore / addFilterAfter 的顺序</div>
+      <div class="file-lines">51 行 — 最重要的 51 行代码</div>
+    </div>
+    <div class="file-card">
+      <div class="file-path">mall-security/src/.../component/JwtAuthenticationTokenFilter.java</div>
+      <div class="file-desc">自定义 filter #1：从 Header 提取 JWT → 解析用户 → 放入 SecurityContext</div>
+    </div>
+    <div class="file-card">
+      <div class="file-path">mall-security/src/.../component/DynamicSecurityFilter.java</div>
+      <div class="file-desc">自定义 filter #2：URL 动态权限校验。继承 AbstractSecurityInterceptor</div>
+    </div>
+    <div class="file-card">
+      <div class="file-path">mall-security/src/.../component/DynamicAccessDecisionManager.java</div>
+      <div class="file-desc">决策器：比对 GrantedAuthority 和 URL 所需权限</div>
+    </div>
+    <div class="file-card">
+      <div class="file-path">mall-security/src/.../component/DynamicSecurityMetadataSource.java</div>
+      <div class="file-desc">元数据源：从 DB 加载 URL → ConfigAttribute 映射</div>
+    </div>
+    <div class="file-card">
+      <div class="file-path">mall-security/src/.../config/CommonSecurityConfig.java</div>
+      <div class="file-desc">@Bean 工厂 + @ConditionalOnBean 控制动态权限组件注册</div>
+    </div>
+    <div class="file-card">
+      <div class="file-path">mall-admin/src/.../config/MallSecurityConfig.java</div>
+      <div class="file-desc">业务侧：定义 UserDetailsService + DynamicSecurityService 实现</div>
+    </div>
+
+    <div class="pitfall"><strong>踩坑记录：</strong>Spring Security 5 用 <code>FilterSecurityInterceptor</code>，Spring Security 6 改用 <code>AuthorizationFilter</code>。<code>addFilterBefore(filter, FilterSecurityInterceptor.class)</code> 在 SS6 中失效，filter 插入位置在 JWT 之前 → SecurityContext 为空 → 401。修复：<code>addFilterAfter(dynamicFilter, JwtAuthenticationTokenFilter.class)</code></div>
+
+    <div class="deliverable"><strong>Deliverable：</strong>手绘/Mermaid 画出完整 filter chain 顺序图（SecurityContextHolderFilter → LogoutFilter → JwtFilter → DynamicSecurityFilter → AuthorizationFilter），标注每个 filter 做什么</div>
+
+    <ul class="checklist">
+      <li>理解 @ConditionalOnBean 如何让 mall-portal（无动态权限）和 mall-admin 复用同一套 SecurityConfig</li>
+      <li>curl 手动走：登录 → 拿 token → 带 token 请求 → 不带 token → 错误 token</li>
+      <li>对比 <code>git diff 6980dd4..93f026c -- mall-security/</code></li>
+    </ul>
+    <div class="cmd">git diff 6980dd4..93f026c -- mall-security/</div>
+  </div>
+</div>
+
+<!-- ========== P2: Modernization ========== -->
+<div id="p2" class="section">
+  <div class="section-header">
+    <span class="priority-tag p2">P2</span>
+    <h2>现代化改动复盘 — Java 21 现代写法 <span class="must">必做</span> <span class="time-tag">~3h</span></h2>
+    <span class="arrow">▶</span>
+  </div>
+  <div class="section-body">
+    <div class="why"><strong>为什么：</strong>246 个文件从旧风格改到新风格，对比旧→新是最高效的学习方式。不回头看，知识会流失。</div>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--orange);">① 构造器注入 vs 字段注入</h3>
+    <pre><code><span class="cm">// 旧：字段注入 — 不可测试，隐藏依赖</span>
+<span class="an">@Autowired</span> <span class="kw">private</span> <span class="ty">PmsProductMapper</span> productMapper;
+
+<span class="cm">// 新：构造器注入 — Lombok 生成构造函数</span>
+<span class="an">@RequiredArgsConstructor</span>
+<span class="kw">public class</span> <span class="ty">PmsProductServiceImpl</span> {
+    <span class="kw">private final</span> <span class="ty">PmsProductMapper</span> productMapper;
+}</code></pre>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--orange);">② DTO → Java Record</h3>
+    <pre><code><span class="cm">// 旧：30+ 行 class + getter/setter</span>
+<span class="kw">public class</span> <span class="ty">PmsBrandParam</span> { <span class="kw">private</span> <span class="ty">String</span> name; ... }
+
+<span class="cm">// 新：一行搞定，不可变</span>
+<span class="kw">public record</span> <span class="ty">PmsBrandParam</span>(<span class="ty">String</span> name, <span class="ty">String</span> logo, ...) {}</code></pre>
+
+    <div class="pitfall"><strong>不能转 record：</strong>继承类(PmsProductParam extends PmsProduct) / MyBatis resultMap 目标 / MongoDB @Document / 构造后被 mutate 的类</div>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--orange);">③ Controller 注解简化</h3>
+    <pre><code><span class="cm">// @Controller + @ResponseBody + @RequestMapping(method=GET)</span>
+<span class="cm">// → @RestController + @GetMapping</span></code></pre>
+
+    <div class="deliverable"><strong>Deliverable：</strong>写一篇笔记（或 Obsidian 笔记）总结：哪些 DTO 能转 record / 哪些不能 / 为什么 / BeanUtils.copyProperties 对 record 失效的原因</div>
+
+    <ul class="checklist">
+      <li>看 3 个 controller diff：<code>git diff 6980dd4..a1cf926 -- mall-admin/src/.../controller/</code></li>
+      <li>读 PmsProductServiceImpl 的 relateAndInsertList() — 反射做泛型批量插入，思考接口方案</li>
+      <li>看 PmsProductParam 为什么不能转 record（继承 PmsProduct + 7 个 List 字段）</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ========== P3: Business Logic ========== -->
+<div id="p3" class="section">
+  <div class="section-header">
+    <span class="priority-tag p3">P3</span>
+    <h2>核心业务流程 — 下单链路 & 商品管理 <span class="must">必做</span> <span class="time-tag">~4h</span></h2>
+    <span class="arrow">▶</span>
+  </div>
+  <div class="section-body">
+    <div class="why"><strong>为什么：</strong>电商领域模型（SPU/SKU、订单状态机、优惠计算）是这个项目的核心价值，也是后续 AI 集成的数据基础。</div>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--accent);">① 下单流程（最复杂链路）</h3>
+    <div class="file-card">
+      <div class="file-path">mall-portal/src/.../service/impl/OmsPortalOrderServiceImpl.java</div>
+      <div class="file-desc">generateOrder()：校验地址 → 查购物车 → 判库存 → 算优惠券 → 算积分 → 生成订单号 → 插库 → 更新优惠券 → 扣积分 → 清购物车 → 发延迟消息</div>
+      <div class="file-lines">~350 行，15 个注入依赖</div>
+    </div>
+    <div class="file-card">
+      <div class="file-path">mall-portal/src/.../service/impl/OmsPortalOrderServiceImpl.java:cancelOrder()</div>
+      <div class="file-desc">取消订单逆向流程：释放库存 → 退优惠券 → 退积分 → 更新状态</div>
+    </div>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--accent);">② 商品管理（SPU/SKU 模型）</h3>
+    <div class="file-card">
+      <div class="file-path">mall-admin/src/.../service/impl/PmsProductServiceImpl.java</div>
+      <div class="file-desc">create()/update() 操作 7 张关联表：会员价、阶梯价、满减、SKU库存、属性值、专题、优选</div>
+    </div>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--accent);">③ 促销计算引擎</h3>
+    <div class="file-card">
+      <div class="file-path">mall-portal/src/.../service/impl/OmsPromotionServiceImpl.java</div>
+      <div class="file-desc">优惠计算：单品促销 → 阶梯促销 → 满减 → 优惠券 → 积分抵扣</div>
+    </div>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--accent);">④ 数据库核心表</h3>
+    <div class="file-card">
+      <div class="file-path">document/sql/mall.sql</div>
+      <div class="file-desc">76 张表。重点：pms_product / pms_sku_stock / oms_order / oms_order_item</div>
+    </div>
+
+    <div class="deliverable"><strong>Deliverable：</strong>
+      <br>1. 下单流程时序图（Mermaid / draw.io）
+      <br>2. 订单状态机图：0待付款 → 1待发货 → 2已发货 → 3已完成 / 4已关闭 / 5无效
+      <br>3. SPU/SKU ER 图（pms_product + pms_sku_stock + pms_product_attribute_value 三表关系）
+    </div>
+
+    <ul class="checklist">
+      <li>理解 SPU（标准产品单元）和 SKU（库存量单位）的区别</li>
+      <li>理解 RabbitMQ 延迟消息如何实现「超时未支付自动取消」</li>
+      <li>跟 Swagger UI 交互式测试下单流程</li>
+    </ul>
+    <p style="font-size: 0.88rem; color: var(--text-dim); margin-top: 0.5rem;">参考：<code>document/learning/BUSINESS_业务模型.md</code></p>
+  </div>
+</div>
+
+<!-- ============================== PHASE B ============================== -->
+<div class="phase-banner">
+  <h3>Phase B — 工程实践：测试、重构、验证 ✅ 已完成</h3>
+  38 个单元测试全绿，relateAndInsertList 反射重构完成，mall-portal 启动验证通过。
+</div>
+
+<!-- ========== P4: Testing ========== -->
+<div id="p4" class="section">
+  <div class="section-header">
+    <span class="priority-tag p5">P4</span>
+    <h2>补测试 + relateAndInsertList 重构 ✅ <span class="time-tag">已完成</span></h2>
+    <span class="arrow">▶</span>
+  </div>
+  <div class="section-body">
+    <div class="why"><strong>为什么：</strong>测试覆盖 0%，构造器注入使 service 终于可测试。relateAndInsertList 的反射代码是面试「重构」故事的完美素材。</div>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--orange);">Task 4.1 — 单元测试（由简到难）</h3>
+    <div class="file-card">
+      <div class="file-path">mall-admin/src/.../service/impl/PmsBrandServiceImpl.java</div>
+      <div class="file-desc">最简 CRUD，2 依赖。测试：createBrand firstLetter 自动填充 / updateBrand 同步更新 product 表 / deleteBrand</div>
+    </div>
+    <div class="file-card">
+      <div class="file-path">mall-admin/src/.../service/impl/PmsProductAttributeServiceImpl.java</div>
+      <div class="file-desc">中等。测试：create 时 attributeCount/paramCount +1 / delete 时计数 -N / delete 边界（count < 删除数）</div>
+    </div>
+    <div class="file-card">
+      <div class="file-path">mall-admin/src/.../service/impl/OmsOrderServiceImpl.java</div>
+      <div class="file-desc">复杂。测试：delivery 批量更新 / updateReceiverInfo 金额验证 / updateMoneyInfo 计算逻辑</div>
+    </div>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--orange);">测试模板</h3>
+    <pre><code><span class="an">@ExtendWith</span>(<span class="ty">MockitoExtension</span>.<span class="kw">class</span>)
+<span class="kw">class</span> <span class="ty">PmsBrandServiceImplTest</span> {
+    <span class="an">@Mock</span> <span class="kw">private</span> <span class="ty">PmsBrandMapper</span> brandMapper;
+    <span class="an">@Mock</span> <span class="kw">private</span> <span class="ty">PmsProductMapper</span> productMapper;
+    <span class="kw">private</span> <span class="ty">PmsBrandServiceImpl</span> service;
+
+    <span class="an">@BeforeEach</span>
+    <span class="kw">void</span> <span class="fn">setUp</span>() {
+        service = <span class="kw">new</span> <span class="ty">PmsBrandServiceImpl</span>(brandMapper, productMapper);
+    }
+
+    <span class="an">@Test</span> <span class="an">@DisplayName</span>(<span class="str">"firstLetter 为空时自动取 name 首字"</span>)
+    <span class="kw">void</span> <span class="fn">createBrand_emptyFirstLetter_autoFills</span>() {
+        <span class="kw">var</span> param = <span class="kw">new</span> <span class="ty">PmsBrandParam</span>(<span class="str">"小米"</span>, <span class="str">""</span>, 0, 1, 1, <span class="kw">null</span>, <span class="kw">null</span>, <span class="kw">null</span>);
+        when(brandMapper.insertSelective(any())).thenReturn(1);
+        service.createBrand(param);
+        <span class="kw">var</span> captor = <span class="ty">ArgumentCaptor</span>.forClass(<span class="ty">PmsBrand</span>.<span class="kw">class</span>);
+        verify(brandMapper).insertSelective(captor.capture());
+        assertThat(captor.getValue().getFirstLetter()).isEqualTo(<span class="str">"小"</span>);
+    }
+}</code></pre>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--orange);">Task 4.2 — 重构 relateAndInsertList</h3>
+    <div class="file-card">
+      <div class="file-path">PmsProductServiceImpl.java:252-267</div>
+      <div class="file-desc">现状：用 <code>Method.invoke()</code> 反射实现泛型批量插入，运行时可能 NPE/类型错误，不可测试</div>
+    </div>
+    <pre><code><span class="cm">// 重构方案：定义泛型接口</span>
+<span class="kw">public interface</span> <span class="ty">BatchInsertDao</span>&lt;<span class="ty">T</span>&gt; {
+    <span class="kw">void</span> <span class="fn">insertList</span>(<span class="ty">List</span>&lt;<span class="ty">T</span>&gt; list);
+}
+
+<span class="cm">// 定义 ProductRelation 接口让所有关联实体实现</span>
+<span class="kw">public interface</span> <span class="ty">ProductRelation</span> {
+    <span class="kw">void</span> <span class="fn">setId</span>(<span class="ty">Long</span> id);
+    <span class="kw">void</span> <span class="fn">setProductId</span>(<span class="ty">Long</span> productId);
+}
+
+<span class="cm">// 重构后的方法：类型安全，可测试</span>
+<span class="kw">private</span> &lt;<span class="ty">T</span> <span class="kw">extends</span> <span class="ty">ProductRelation</span>&gt; <span class="kw">void</span> <span class="fn">relateAndInsert</span>(
+        <span class="ty">BatchInsertDao</span>&lt;<span class="ty">T</span>&gt; dao, <span class="ty">List</span>&lt;<span class="ty">T</span>&gt; list, <span class="ty">Long</span> productId) {
+    <span class="kw">if</span> (list == <span class="kw">null</span> || list.isEmpty()) <span class="kw">return</span>;
+    list.forEach(item -> { item.setId(<span class="kw">null</span>); item.setProductId(productId); });
+    dao.insertList(list);
+}</code></pre>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--green);">Task 4.3 — 已完成</h3>
+    <ul class="checklist">
+      <li style="text-decoration:line-through;color:var(--text-dim)">移除 pom.xml 中的 <code>&lt;skipTests&gt;true&lt;/skipTests&gt;</code></li>
+      <li style="text-decoration:line-through;color:var(--text-dim)">确保 <code>mvn test -pl mall-admin</code> 绿色通过</li>
+      <li style="text-decoration:line-through;color:var(--text-dim)">给 OmsOrderServiceImpl 写 8 个测试</li>
+      <li style="text-decoration:line-through;color:var(--text-dim)">给 UmsAdminServiceImpl 写 19 个测试</li>
+      <li style="text-decoration:line-through;color:var(--text-dim)">给 PmsProductServiceImpl 写 11 个测试</li>
+      <li style="text-decoration:line-through;color:var(--text-dim)">重构 relateAndInsertList：ProductRelation + BatchInsertDao&lt;T&gt; 泛型接口替换反射</li>
+      <li style="text-decoration:line-through;color:var(--text-dim)">mvn compile 通过</li>
+    </ul>
+
+    <div class="deliverable"><strong>Deliverable：</strong>
+      <br>1. mall-admin/src/test/ 下 38 个单元测试全绿
+      <br>2. relateAndInsertList 重构完成：7 个 model 实现 ProductRelation，7 个 DAO 继承 BatchInsertDao
+      <br>3. git commit: <code>feat: add unit tests for core services, refactor reflection-based batch insert</code>
+    </div>
+
+    <div class="cmd">JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home mvn test -pl mall-admin</div>
+  </div>
+</div>
+
+<!-- ========== P5: Portal Verification ========== -->
+<div id="p5" class="section">
+  <div class="section-header">
+    <span class="priority-tag p5">P5</span>
+    <h2>mall-portal 启动验证 + API 联调 ✅ <span class="time-tag">已完成</span></h2>
+    <span class="arrow">▶</span>
+  </div>
+  <div class="section-body">
+    <div class="why"><strong>为什么：</strong>我们只验了 mall-admin，mall-portal（前台 API）依赖 MongoDB + RabbitMQ，需要跑一遍确保改动没破坏前台流程。</div>
+
+    <ul class="checklist">
+      <li style="text-decoration:line-through;color:var(--text-dim)">确保 Docker 中 MongoDB 和 RabbitMQ 正常运行</li>
+      <li style="text-decoration:line-through;color:var(--text-dim)">启动 mall-portal：<code>cd mall-portal && mvn spring-boot:run</code>（端口 8085）</li>
+      <li style="text-decoration:line-through;color:var(--text-dim)">注册/登录：POST /sso/register, POST /sso/login</li>
+      <li style="text-decoration:line-through;color:var(--text-dim)">浏览商品：GET /home/content, GET /product/detail/{id}</li>
+      <li style="text-decoration:line-through;color:var(--text-dim)">加购物车：POST /cart/add</li>
+      <li style="text-decoration:line-through;color:var(--text-dim)">下单流程：POST /order/generateConfirmOrder → POST /order/generateOrder</li>
+      <li style="text-decoration:line-through;color:var(--text-dim)">验证 Alipay record 改动：POST /alipay/pay（mock 模式）</li>
+    </ul>
+
+    <div class="deliverable"><strong>Deliverable：</strong>
+      <br>1. mall-portal 4.8s 启动成功
+      <br>2. API 端点返回 401（需 JWT 认证）= 验证链路正确
+      <br>3. Docker 中间件栈全部运行正常
+    </div>
+
+    <div class="cmd"># 启动
+docker compose -f document/docker/docker-compose-env.yml up -d
+cd mall-portal && JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home mvn spring-boot:run
+
+# 测试
+curl -s http://localhost:8085/home/content | python3 -m json.tool | head -10</div>
+  </div>
+</div>
+
+<!-- ============================== PHASE C ============================== -->
+<div class="phase-banner">
+  <h3>Phase C — AI 集成：让项目有 AI Native 灵魂</h3>
+  港科大大数据 + AI Native 求职方向。在完整电商数据模型上叠加 AI 能力。
+</div>
+
+<!-- ========== P6: Semantic Search ========== -->
+<div id="p6" class="section open">
+  <div class="section-header">
+    <span class="priority-tag p4">P6</span>
+    <h2>商品语义搜索 — PostgreSQL + pgvector <span class="must">必做</span> <span class="time-tag">~6h</span></h2>
+    <span class="arrow">▶</span>
+  </div>
+  <div class="section-body">
+    <div class="why"><strong>为什么：</strong>现有 mall-search 用 ES 关键词匹配。PostgreSQL + pgvector 提供向量搜索能力，是 AI Native 应用的基础设施。MySQL 继续承载 CRUD 业务，PostgreSQL 专门承载向量数据。</div>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--green);">已完成：mall-search-pg 原型</h3>
+    <div class="file-card">
+      <div class="file-path">mall-search-pg/</div>
+      <div class="file-desc">独立模块，Spring Boot 3 + JDBC + pgvector。端口 8085。Docker Compose 中已添加 PostgreSQL 容器（端口 5433）</div>
+    </div>
+    <div class="file-card">
+      <div class="file-path">mall-search-pg/src/.../repository/ProductEmbeddingRepository.java</div>
+      <div class="file-desc">JdbcTemplate + pgvector SQL：建表、插入、余弦相似度搜索（<code>&lt;=></code> 操作符）</div>
+    </div>
+    <div class="file-card">
+      <div class="file-path">mall-search-pg/src/.../controller/VectorSearchController.java</div>
+      <div class="file-desc">REST API：POST /vector/init, POST /vector/index, GET /vector/search, GET /vector/stats</div>
+    </div>
+
+    <div class="pitfall"><strong>当前 embedding 是 mock：</strong>用 SHA-256 bag-of-words 生成确定性向量。语义能力有限，仅用于验证 pgvector 管道。接入真实 embedding API 后替换 <code>textToVector()</code> 方法即可。</div>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--purple);">下一步：接入真实 Embedding</h3>
+    <ul class="checklist">
+      <li>引入 embedding 客户端（OpenAI / Voyage AI / 本地 BGE-M3）</li>
+      <li>替换 VectorSearchServiceImpl.textToVector() → 调用真实 API</li>
+      <li>从 MySQL 同步商品数据到 PostgreSQL（name + description → embedding）</li>
+      <li>实现 hybrid search：MySQL 关键词 + pgvector 语义 → RRF 融合</li>
+      <li>性能优化：HNSW 索引参数调优、批量 embedding 并发</li>
+    </ul>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--purple);">技术选型</h3>
+    <pre><code><span class="cm">// Embedding 选项（按优先级）：</span>
+<span class="cm">// 1. OpenAI text-embedding-3-small (1536d, 便宜)</span>
+<span class="cm">// 2. Voyage AI voyage-3 (1024d, 中文好)</span>
+<span class="cm">// 3. 本地 BGE-M3 (1024d, 免费但需 GPU)</span>
+
+<span class="cm">// pgvector 余弦相似度搜索</span>
+<span class="kw">SELECT</span> product_id, name,
+       1 - (embedding &lt;=&gt; query_vector) <span class="kw">AS</span> similarity
+<span class="kw">FROM</span> product_embeddings
+<span class="kw">ORDER BY</span> embedding &lt;=&gt; query_vector
+<span class="kw">LIMIT</span> 10;</code></pre>
+
+    <div class="cmd"># 启动 PostgreSQL + 应用
+docker compose -f document/docker/docker-compose-env.yml up -d postgres
+cd mall-search-pg && JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home mvn spring-boot:run
+
+# 初始化 + 索引 + 搜索
+curl -X POST http://localhost:8085/vector/init
+curl -X POST http://localhost:8085/vector/index/batch -H 'Content-Type: application/json' -d '[...]'
+curl 'http://localhost:8085/vector/search?query=camera+video&limit=5'</div>
+
+    <div class="deliverable"><strong>Deliverable：</strong>
+      <br>1. pgvector 管道验证通过（SHA-256 mock embedding）
+      <br>2. 接入真实 embedding API → 语义搜索结果明显优于关键词
+      <br>3. 从 MySQL 同步商品数据脚本
+      <br>4. git commit: <code>feat: add mall-search-pg with pgvector semantic search</code>
+    </div>
+  </div>
+</div>
+
+<!-- ========== P7: RAG Customer Service ========== -->
+<div id="p7" class="section">
+  <div class="section-header">
+    <span class="priority-tag p4">P7</span>
+    <h2>智能客服 RAG — Claude API + 商品知识库 <span class="must">必做</span> <span class="time-tag">~6h</span></h2>
+    <span class="arrow">▶</span>
+  </div>
+  <div class="section-body">
+    <div class="why"><strong>为什么：</strong>RAG 是 2024-2026 最热门的 AI 工程模式。用真实电商数据做 RAG 比 demo 项目有说服力 10 倍。</div>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--purple);">架构</h3>
+    <pre><code>用户问题
+  ↓
+[Query Embedding] → [向量检索 ES/商品库]
+  ↓
+检索到 Top-K 商品信息
+  ↓
+[Prompt 组装: system + retrieved context + user question]
+  ↓
+[Claude API] → 回答</code></pre>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--purple);">实现步骤</h3>
+    <ul class="checklist">
+      <li>引入 Claude Java SDK：<code>com.anthropic:anthropic-java</code></li>
+      <li>新建 <code>AiChatService</code>：接收用户问题 → 向量检索相关商品 → 构造 prompt → 调 Claude API</li>
+      <li>新建 <code>AiController</code>：<code>POST /ai/chat</code> 端点</li>
+      <li>System prompt 设计：你是电商客服，只基于检索到的商品信息回答，不编造</li>
+      <li>支持多轮对话（conversation history）</li>
+      <li>支持 streaming response（SSE）</li>
+    </ul>
+
+    <pre><code><span class="an">@RestController</span>
+<span class="an">@RequestMapping</span>(<span class="str">"/ai"</span>)
+<span class="an">@RequiredArgsConstructor</span>
+<span class="kw">public class</span> <span class="ty">AiController</span> {
+    <span class="kw">private final</span> <span class="ty">AiChatService</span> chatService;
+
+    <span class="an">@PostMapping</span>(<span class="str">"/chat"</span>)
+    <span class="kw">public</span> <span class="ty">CommonResult</span>&lt;<span class="ty">String</span>&gt; <span class="fn">chat</span>(<span class="an">@RequestBody</span> <span class="ty">ChatRequest</span> req) {
+        <span class="kw">return</span> <span class="ty">CommonResult</span>.success(chatService.answer(req));
+    }
+
+    <span class="an">@GetMapping</span>(value = <span class="str">"/chat/stream"</span>, produces = <span class="str">"text/event-stream"</span>)
+    <span class="kw">public</span> <span class="ty">Flux</span>&lt;<span class="ty">String</span>&gt; <span class="fn">chatStream</span>(<span class="an">@RequestParam</span> <span class="ty">String</span> question) {
+        <span class="kw">return</span> chatService.streamAnswer(question);
+    }
+}</code></pre>
+
+    <div class="deliverable"><strong>Deliverable：</strong>
+      <br>1. <code>POST /ai/chat {"question": "有什么适合送女朋友的手机？"}</code> 返回基于商品库的回答
+      <br>2. SSE streaming 端点可用
+      <br>3. 回答中引用具体商品名称和价格（来自检索结果）
+      <br>4. git commit: <code>feat: add RAG-based AI customer service with Claude API</code>
+    </div>
+  </div>
+</div>
+
+<!-- ========== P8: Recommendation + Anomaly ========== -->
+<div id="p8" class="section">
+  <div class="section-header">
+    <span class="priority-tag p4">P8</span>
+    <h2>个性化推荐 + 订单异常检测 <span class="must">必做</span> <span class="time-tag">~8h</span></h2>
+    <span class="arrow">▶</span>
+  </div>
+  <div class="section-body">
+    <div class="why"><strong>为什么：</strong>推荐系统和异常检测是大数据方向最核心的应用场景。有真实表结构 + 模拟数据，比 Kaggle 数据集更能展示工程能力。</div>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--purple);">Task 8.1 — 个性化推荐</h3>
+    <ul class="checklist">
+      <li>基于 oms_order + oms_order_item 构建「用户-商品」交互矩阵</li>
+      <li>方案 A：协同过滤（item-based CF），基于购买共现</li>
+      <li>方案 B：Embedding 推荐 — 用户浏览/购买历史 embedding 平均 → 与商品 embedding 计算余弦相似度</li>
+      <li>新增 <code>GET /ai/recommend?memberId=1</code> 端点</li>
+      <li>结果缓存到 Redis（key: <code>recommend:{memberId}</code>，TTL 1h）</li>
+    </ul>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--purple);">Task 8.2 — 订单异常检测</h3>
+    <ul class="checklist">
+      <li>特征工程：从 oms_order 提取（单用户下单频率、退货率、客单价偏差、时间分布异常）</li>
+      <li>方案 A：规则引擎（简单阈值：退货率>50%、1h内下单>10次）</li>
+      <li>方案 B：Isolation Forest / Local Outlier Factor（sklearn via Jython 或 Python 微服务）</li>
+      <li>新增 <code>GET /ai/anomaly/orders?days=7</code> 返回异常订单列表 + 原因</li>
+      <li>可选：用 Claude API 做异常解释（输入特征向量，输出人类可读解释）</li>
+    </ul>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--purple);">技术方案对比</h3>
+    <pre><code><span class="cm">// 推荐方案选择</span>
+<span class="cm">// 数据量小（<1000 订单）→ 用 embedding 方案，效果好</span>
+<span class="cm">// 数据量大（>10000 订单）→ 用 CF，计算量可控</span>
+
+<span class="cm">// 异常检测方案选择</span>
+<span class="cm">// 快速交付 → 规则引擎（Java 内实现，无外部依赖）</span>
+<span class="cm">// 展示 ML 能力 → Python 微服务（Flask + sklearn）</span>
+<span class="cm">// 面试亮点 → 两者都做，规则兜底 + ML 增强</span></code></pre>
+
+    <div class="deliverable"><strong>Deliverable：</strong>
+      <br>1. <code>GET /ai/recommend?memberId=1</code> 返回 ≥5 个推荐商品
+      <br>2. <code>GET /ai/anomaly/orders?days=30</code> 返回异常订单 + 原因标签
+      <br>3. Redis 缓存推荐结果（验证 TTL 生效）
+      <br>4. git commit: <code>feat: add personalized recommendation and order anomaly detection</code>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== Summary ============================== -->
+<hr>
+
+<div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem; margin-bottom: 1.5rem;">
+  <h3 style="color: var(--accent); margin-bottom: 0.8rem;">执行顺序总结</h3>
+  <table style="width: 100%; font-size: 0.88rem; border-collapse: collapse;">
+    <tr style="border-bottom: 1px solid var(--border);">
+      <th style="text-align: left; padding: 0.5rem; color: var(--text-dim);">Phase</th>
+      <th style="text-align: left; padding: 0.5rem; color: var(--text-dim);">任务</th>
+      <th style="text-align: left; padding: 0.5rem; color: var(--text-dim);">时长</th>
+      <th style="text-align: left; padding: 0.5rem; color: var(--text-dim);">产出</th>
+      <th style="text-align: left; padding: 0.5rem; color: var(--text-dim);">状态</th>
+    </tr>
+    <tr style="border-bottom: 1px solid var(--border);">
+      <td style="padding: 0.5rem; color: var(--orange);">A</td>
+      <td style="padding: 0.5rem;">P1 Security 链路</td>
+      <td style="padding: 0.5rem;">2h</td>
+      <td style="padding: 0.5rem;">Filter chain 图</td>
+      <td style="padding: 0.5rem; color: var(--green);">✅</td>
+    </tr>
+    <tr style="border-bottom: 1px solid var(--border);">
+      <td style="padding: 0.5rem;"></td>
+      <td style="padding: 0.5rem;">P2 现代化复盘</td>
+      <td style="padding: 0.5rem;">3h</td>
+      <td style="padding: 0.5rem;">Record 决策笔记</td>
+      <td style="padding: 0.5rem; color: var(--green);">✅</td>
+    </tr>
+    <tr style="border-bottom: 1px solid var(--border);">
+      <td style="padding: 0.5rem;"></td>
+      <td style="padding: 0.5rem;">P3 业务流程</td>
+      <td style="padding: 0.5rem;">4h</td>
+      <td style="padding: 0.5rem;">时序图 + 状态机 + ER 图</td>
+      <td style="padding: 0.5rem; color: var(--green);">✅</td>
+    </tr>
+    <tr style="border-bottom: 1px solid var(--border);">
+      <td style="padding: 0.5rem; color: var(--accent);">B</td>
+      <td style="padding: 0.5rem;">P4 测试 + 重构</td>
+      <td style="padding: 0.5rem;">8h</td>
+      <td style="padding: 0.5rem;">38 个测试 + relateAndInsertList 重构</td>
+      <td style="padding: 0.5rem; color: var(--green);">✅</td>
+    </tr>
+    <tr style="border-bottom: 1px solid var(--border);">
+      <td style="padding: 0.5rem;"></td>
+      <td style="padding: 0.5rem;">P5 Portal 验证</td>
+      <td style="padding: 0.5rem;">2h</td>
+      <td style="padding: 0.5rem;">全链路 curl 跑通</td>
+      <td style="padding: 0.5rem; color: var(--green);">✅</td>
+    </tr>
+    <tr style="border-bottom: 1px solid var(--border);">
+      <td style="padding: 0.5rem; color: var(--purple);">C</td>
+      <td style="padding: 0.5rem;">P6 pgvector 语义搜索</td>
+      <td style="padding: 0.5rem;">6h</td>
+      <td style="padding: 0.5rem;">mall-search-pg 模块（原型完成，待接真实 embedding）</td>
+      <td style="padding: 0.5rem; color: var(--orange);">🔄</td>
+    </tr>
+    <tr style="border-bottom: 1px solid var(--border);">
+      <td style="padding: 0.5rem;"></td>
+      <td style="padding: 0.5rem;">P7 RAG 客服</td>
+      <td style="padding: 0.5rem;">6h</td>
+      <td style="padding: 0.5rem;">/ai/chat + SSE streaming</td>
+      <td style="padding: 0.5rem;"></td>
+    </tr>
+    <tr>
+      <td style="padding: 0.5rem;"></td>
+      <td style="padding: 0.5rem;">P8 推荐 + 异常</td>
+      <td style="padding: 0.5rem;">8h</td>
+      <td style="padding: 0.5rem;">/ai/recommend + /ai/anomaly</td>
+      <td style="padding: 0.5rem;"></td>
+    </tr>
+  </table>
+  <p style="margin-top: 0.8rem; font-size: 0.85rem; color: var(--text-dim);">Phase A+B 已完成（~19h）。剩余 P6 真实 embedding 接入 + P7 RAG + P8 推荐异常检测（~20h）。</p>
+</div>
+
+<div style="text-align: center; color: var(--text-dim); font-size: 0.82rem; padding: 1rem 0;">
+  <p>快速命令</p>
+  <div class="cmd" style="text-align: left; display: inline-block; min-width: 560px;">
+# 启动基础设施（含 PostgreSQL + pgvector）
+docker compose -f document/docker/docker-compose-env.yml up -d
+
+# mall-admin (后台，端口 8080)
+cd mall-admin && JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home mvn spring-boot:run
+
+# mall-portal (前台，端口 8085)
+cd mall-portal && JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home mvn spring-boot:run
+
+# mall-search-pg (向量搜索，端口 8085)
+cd mall-search-pg && JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home mvn spring-boot:run
+
+# 跑单元测试
+JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home mvn test -pl mall-admin
+
+# Swagger
+open http://localhost:8080/swagger-ui/index.html</div>
+</div>
+
+<script>
+document.querySelectorAll('.section-header').forEach(h => {
+  h.addEventListener('click', () => h.parentElement.classList.toggle('open'));
+});
+document.querySelectorAll('.section')[0].classList.add('open');
+</script>
+</body>
+</html>

@@ -37,7 +37,7 @@ public class EmbeddingServiceImpl implements EmbeddingService {
             @Value("${app.embedding.timeout-ms:10000}") int timeoutMs) {
         this.apiUrl = apiUrl.endsWith("/") ? apiUrl.substring(0, apiUrl.length() - 1) : apiUrl;
         this.model = model;
-        this.apiKey = apiKey;
+        this.apiKey = (apiKey != null && !apiKey.isBlank()) ? apiKey : null;
         this.dims = dims;
         this.timeoutMs = timeoutMs;
         this.objectMapper = new ObjectMapper();
@@ -52,16 +52,13 @@ public class EmbeddingServiceImpl implements EmbeddingService {
 
     @Override
     public List<float[]> embedBatch(List<String> texts) {
-        if (apiKey == null || apiKey.isBlank()) {
-            log.warn("Embedding API key not configured, returning zero vectors");
-            return zeroVectors(texts.size());
-        }
-
         try {
             String url = apiUrl + "/v1/embeddings";
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(apiKey);
+            if (apiKey != null) {
+                headers.setBearerAuth(apiKey);
+            }
 
             Map<String, Object> body = Map.of(
                     "model", model,
