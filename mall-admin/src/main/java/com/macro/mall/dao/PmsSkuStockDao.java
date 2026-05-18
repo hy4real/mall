@@ -9,12 +9,7 @@ import java.util.List;
  * 商品SKU管理自定义Dao
  * Created by macro on 2018/4/26.
  */
-public interface PmsSkuStockDao {
-    /**
-     * 批量插入操作
-     */
-    int insertList(@Param("list")List<PmsSkuStock> skuStockList);
-
+public interface PmsSkuStockDao extends BatchInsertDao<PmsSkuStock> {
     /**
      * 批量插入或替换操作
      */

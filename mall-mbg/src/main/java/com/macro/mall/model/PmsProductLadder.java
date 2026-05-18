@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-public class PmsProductLadder implements Serializable {
+public class PmsProductLadder implements Serializable, ProductRelation {
     private Long id;
 
     private Long productId;

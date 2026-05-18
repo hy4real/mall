@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -249,20 +248,12 @@ public class PmsProductServiceImpl implements PmsProductService {
         return productMapper.selectByExample(productExample);
     }
 
-    private void relateAndInsertList(Object dao, List dataList, Long productId) {
-        try {
-            if (CollectionUtils.isEmpty(dataList)) return;
-            for (Object item : dataList) {
-                Method setId = item.getClass().getMethod("setId", Long.class);
-                setId.invoke(item, (Long) null);
-                Method setProductId = item.getClass().getMethod("setProductId", Long.class);
-                setProductId.invoke(item, productId);
-            }
-            Method insertList = dao.getClass().getMethod("insertList", List.class);
-            insertList.invoke(dao, dataList);
-        } catch (Exception e) {
-            LOGGER.warn("创建商品出错:{}", e.getMessage());
-            throw new RuntimeException(e.getMessage());
+    private <T extends ProductRelation> void relateAndInsertList(BatchInsertDao<T> dao, List<T> dataList, Long productId) {
+        if (CollectionUtils.isEmpty(dataList)) return;
+        for (T item : dataList) {
+            item.setId(null);
+            item.setProductId(productId);
         }
+        dao.insertList(dataList);
     }
 }
