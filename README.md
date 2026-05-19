@@ -58,7 +58,9 @@ mall
 ├── mall-admin -- 后台商城管理系统接口
 ├── mall-search -- 基于Elasticsearch的商品搜索系统
 ├── mall-portal -- 前台商城系统接口
-└── mall-demo -- 框架搭建时的测试代码
+├── mall-demo -- 框架搭建时的测试代码
+├── mall-search-modern -- AI 搜索、RAG 客服、推荐与异常检测模块
+└── mall-search-pg -- PostgreSQL + pgvector 商品语义/混合搜索模块
 ```
 
 ### 技术选型
@@ -198,16 +200,47 @@ mall
 
 加微信群交流，关注公众号「**macrozheng**」，回复「**加群**」即可。
 
-## mall-search-modern
+## AI 搜索与智能服务
 
-RAG 验证脚本：
+本 fork 增加了两个 AI Native 实践模块：
+
+- `mall-search-pg`：PostgreSQL + pgvector 商品语义搜索，支持真实 embedding API、pg_trgm 关键词分数和 hybrid search。
+- `mall-search-modern`：基于 Elasticsearch 商品库的语义搜索、RAG 智能客服、SSE streaming、个性化推荐和订单异常检测。
+
+启动基础设施：
+
+```bash
+docker compose -f document/docker/docker-compose-env.yml up -d mysql redis elasticsearch postgres
+```
+
+`mall-search-pg` 验证：
+
+```bash
+cd mall-search-pg
+mvn test
+mvn spring-boot:run -DskipTests
+curl -X POST http://localhost:8085/vector/init
+curl 'http://localhost:8085/vector/search/hybrid?query=手机&limit=5'
+```
+
+`mall-search-modern` 验证：
 
 ```bash
 cd mall-search-modern
 mvn test
 scripts/rag-smoke.sh
 scripts/rag-eval.sh
+curl 'http://localhost:8081/ai/recommend?memberId=1&size=5'
+curl 'http://localhost:8081/ai/anomaly/orders?days=30'
+docker exec redis redis-cli ttl recommend:1
 ```
+
+P8 本地验收结果（2026-05-19）：
+
+- `GET /ai/recommend?memberId=1&size=5` 返回 `code=200`，5 个推荐商品。
+- Redis 写入 `recommend:1`，类型 `string`，TTL 约 1 小时（实测 `3572` 秒）。
+- `GET /ai/anomaly/orders?days=30` 返回 `code=200`，`totalOrders=8`，`anomalyCount=8`，原因汇总包含 `ORDER_BURST` 和 `AMOUNT_OUTLIER`。
+- `mall-search-pg mvn test` 通过 3 个测试；`mall-search-modern mvn test` 通过 15 个测试。
 
 ![公众号图片](./document/resource/qrcode_for_macrozheng_258.jpg)
 

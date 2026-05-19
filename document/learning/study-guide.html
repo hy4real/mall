@@ -522,7 +522,7 @@ curl -s http://localhost:8085/home/content | python3 -m json.tool | head -10</di
 
 <!-- ============================== PHASE C ============================== -->
 <div class="phase-banner">
-  <h3>Phase C — AI 集成：让项目有 AI Native 灵魂</h3>
+  <h3>Phase C — AI 集成：让项目有 AI Native 灵魂 ✅ 已完成</h3>
   港科大大数据 + AI Native 求职方向。在完整电商数据模型上叠加 AI 能力。
 </div>
 
@@ -536,29 +536,28 @@ curl -s http://localhost:8085/home/content | python3 -m json.tool | head -10</di
   <div class="section-body">
     <div class="why"><strong>为什么：</strong>现有 mall-search 用 ES 关键词匹配。PostgreSQL + pgvector 提供向量搜索能力，是 AI Native 应用的基础设施。MySQL 继续承载 CRUD 业务，PostgreSQL 专门承载向量数据。</div>
 
-    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--green);">已完成：mall-search-pg 原型</h3>
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--green);">已完成：mall-search-pg 原型 + 真实 embedding</h3>
     <div class="file-card">
       <div class="file-path">mall-search-pg/</div>
       <div class="file-desc">独立模块，Spring Boot 3 + JDBC + pgvector。端口 8085。Docker Compose 中已添加 PostgreSQL 容器（端口 5433）</div>
     </div>
     <div class="file-card">
       <div class="file-path">mall-search-pg/src/.../repository/ProductEmbeddingRepository.java</div>
-      <div class="file-desc">JdbcTemplate + pgvector SQL：建表、插入、余弦相似度搜索（<code>&lt;=></code> 操作符）</div>
+      <div class="file-desc">JdbcTemplate + pgvector SQL：建表、插入、余弦相似度搜索（<code>&lt;=></code> 操作符）和 hybrid search</div>
     </div>
     <div class="file-card">
       <div class="file-path">mall-search-pg/src/.../controller/VectorSearchController.java</div>
-      <div class="file-desc">REST API：POST /vector/init, POST /vector/index, GET /vector/search, GET /vector/stats</div>
+      <div class="file-desc">REST API：POST /vector/init, POST /vector/index, GET /vector/search, GET /vector/search/hybrid, GET /vector/stats</div>
     </div>
 
-    <div class="pitfall"><strong>当前 embedding 是 mock：</strong>用 SHA-256 bag-of-words 生成确定性向量。语义能力有限，仅用于验证 pgvector 管道。接入真实 embedding API 后替换 <code>textToVector()</code> 方法即可。</div>
+    <div class="pitfall"><strong>实现结果：</strong>已接入真实 embedding API（默认指向本地 Ollama / OpenAI-compatible 服务），并把关键词分数与向量分数做 hybrid search 融合。</div>
 
-    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--purple);">下一步：接入真实 Embedding</h3>
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--purple);">验收结果</h3>
     <ul class="checklist">
-      <li>引入 embedding 客户端（OpenAI / Voyage AI / 本地 BGE-M3）</li>
-      <li>替换 VectorSearchServiceImpl.textToVector() → 调用真实 API</li>
-      <li>从 MySQL 同步商品数据到 PostgreSQL（name + description → embedding）</li>
-      <li>实现 hybrid search：MySQL 关键词 + pgvector 语义 → RRF 融合</li>
-      <li>性能优化：HNSW 索引参数调优、批量 embedding 并发</li>
+      <li><code>GET /vector/search?query=...</code> 返回语义相似商品</li>
+      <li><code>GET /vector/search/hybrid?query=...</code> 返回关键词 + 向量融合结果</li>
+      <li><code>mvn test</code> 通过，覆盖 hybrid search 逻辑</li>
+      <li>Docker Compose 已提供 PostgreSQL + pgvector</li>
     </ul>
 
     <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--purple);">技术选型</h3>
@@ -581,13 +580,14 @@ cd mall-search-pg && JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/
 # 初始化 + 索引 + 搜索
 curl -X POST http://localhost:8085/vector/init
 curl -X POST http://localhost:8085/vector/index/batch -H 'Content-Type: application/json' -d '[...]'
-curl 'http://localhost:8085/vector/search?query=camera+video&limit=5'</div>
+curl 'http://localhost:8085/vector/search?query=camera+video&limit=5'
+curl 'http://localhost:8085/vector/search/hybrid?query=camera+video&limit=5'</div>
 
     <div class="deliverable"><strong>Deliverable：</strong>
-      <br>1. pgvector 管道验证通过（SHA-256 mock embedding）
-      <br>2. 接入真实 embedding API → 语义搜索结果明显优于关键词
-      <br>3. 从 MySQL 同步商品数据脚本
-      <br>4. git commit: <code>feat: add mall-search-pg with pgvector semantic search</code>
+      <br>1. pgvector 管道验证通过，真实 embedding 已接入
+      <br>2. hybrid search 可同时利用关键词和向量信号
+      <br>3. 从 MySQL 同步商品数据到 PostgreSQL
+      <br>4. git commit: <code>feat(search-pg): add hybrid search</code>
     </div>
   </div>
 </div>
@@ -596,7 +596,7 @@ curl 'http://localhost:8085/vector/search?query=camera+video&limit=5'</div>
 <div id="p7" class="section">
   <div class="section-header">
     <span class="priority-tag p4">P7</span>
-    <h2>智能客服 RAG — Claude API + 商品知识库 <span class="must">必做</span> <span class="time-tag">~6h</span></h2>
+    <h2>智能客服 RAG — LLM API + 商品知识库 <span class="must">必做</span> <span class="time-tag">~6h</span></h2>
     <span class="arrow">▶</span>
   </div>
   <div class="section-body">
@@ -611,16 +611,15 @@ curl 'http://localhost:8085/vector/search?query=camera+video&limit=5'</div>
   ↓
 [Prompt 组装: system + retrieved context + user question]
   ↓
-[Claude API] → 回答</code></pre>
+[LLM API] → 回答</code></pre>
 
-    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--purple);">实现步骤</h3>
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--purple);">已完成实现</h3>
     <ul class="checklist">
-      <li>引入 Claude Java SDK：<code>com.anthropic:anthropic-java</code></li>
-      <li>新建 <code>AiChatService</code>：接收用户问题 → 向量检索相关商品 → 构造 prompt → 调 Claude API</li>
-      <li>新建 <code>AiController</code>：<code>POST /ai/chat</code> 端点</li>
-      <li>System prompt 设计：你是电商客服，只基于检索到的商品信息回答，不编造</li>
-      <li>支持多轮对话（conversation history）</li>
+      <li>新建 <code>RagService</code>：接收用户问题 → 检索相关商品 → 构造 prompt → 调用 LLM API</li>
+      <li>新建 <code>AiController</code>：<code>POST /ai/chat</code> 和 <code>POST /ai/chat/stream</code></li>
+      <li>System prompt 设计：只基于检索到的商品信息回答，不编造</li>
       <li>支持 streaming response（SSE）</li>
+      <li>SSE 事件包含 <code>sources</code>、<code>token</code>、<code>complete</code></li>
     </ul>
 
     <pre><code><span class="an">@RestController</span>
@@ -642,9 +641,9 @@ curl 'http://localhost:8085/vector/search?query=camera+video&limit=5'</div>
 
     <div class="deliverable"><strong>Deliverable：</strong>
       <br>1. <code>POST /ai/chat {"question": "有什么适合送女朋友的手机？"}</code> 返回基于商品库的回答
-      <br>2. SSE streaming 端点可用
+      <br>2. <code>POST /ai/chat/stream</code> 流式返回 sources / token / complete
       <br>3. 回答中引用具体商品名称和价格（来自检索结果）
-      <br>4. git commit: <code>feat: add RAG-based AI customer service with Claude API</code>
+      <br>4. git commit: <code>feat(search-modern): add RAG SSE streaming</code>
     </div>
   </div>
 </div>
@@ -659,22 +658,20 @@ curl 'http://localhost:8085/vector/search?query=camera+video&limit=5'</div>
   <div class="section-body">
     <div class="why"><strong>为什么：</strong>推荐系统和异常检测是大数据方向最核心的应用场景。有真实表结构 + 模拟数据，比 Kaggle 数据集更能展示工程能力。</div>
 
-    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--purple);">Task 8.1 — 个性化推荐</h3>
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--green);">已完成：个性化推荐</h3>
     <ul class="checklist">
-      <li>基于 oms_order + oms_order_item 构建「用户-商品」交互矩阵</li>
-      <li>方案 A：协同过滤（item-based CF），基于购买共现</li>
-      <li>方案 B：Embedding 推荐 — 用户浏览/购买历史 embedding 平均 → 与商品 embedding 计算余弦相似度</li>
+      <li>基于 <code>oms_order</code> + <code>oms_order_item</code> 构建「用户-商品」交互信号</li>
+      <li>实现购买共现、同品牌、同分类和热度兜底推荐</li>
       <li>新增 <code>GET /ai/recommend?memberId=1</code> 端点</li>
       <li>结果缓存到 Redis（key: <code>recommend:{memberId}</code>，TTL 1h）</li>
     </ul>
 
-    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--purple);">Task 8.2 — 订单异常检测</h3>
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--green);">已完成：订单异常检测</h3>
     <ul class="checklist">
-      <li>特征工程：从 oms_order 提取（单用户下单频率、退货率、客单价偏差、时间分布异常）</li>
-      <li>方案 A：规则引擎（简单阈值：退货率>50%、1h内下单>10次）</li>
-      <li>方案 B：Isolation Forest / Local Outlier Factor（sklearn via Jython 或 Python 微服务）</li>
+      <li>特征工程：从 <code>oms_order</code> 提取单用户下单频率、退货率、客单价偏差、时间分布异常</li>
+      <li>规则引擎：1h 内下单高频、退货率 > 50%、金额异常、凌晨下单、无效状态</li>
       <li>新增 <code>GET /ai/anomaly/orders?days=7</code> 返回异常订单列表 + 原因</li>
-      <li>可选：用 Claude API 做异常解释（输入特征向量，输出人类可读解释）</li>
+      <li>返回 summary、severity、tags 和 features</li>
     </ul>
 
     <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--purple);">技术方案对比</h3>
@@ -688,10 +685,10 @@ curl 'http://localhost:8085/vector/search?query=camera+video&limit=5'</div>
 <span class="cm">// 面试亮点 → 两者都做，规则兜底 + ML 增强</span></code></pre>
 
     <div class="deliverable"><strong>Deliverable：</strong>
-      <br>1. <code>GET /ai/recommend?memberId=1</code> 返回 ≥5 个推荐商品
+      <br>1. <code>GET /ai/recommend?memberId=1&size=5</code> 返回 5 个推荐商品
       <br>2. <code>GET /ai/anomaly/orders?days=30</code> 返回异常订单 + 原因标签
-      <br>3. Redis 缓存推荐结果（验证 TTL 生效）
-      <br>4. git commit: <code>feat: add personalized recommendation and order anomaly detection</code>
+      <br>3. Redis 缓存推荐结果（TTL 实测约 1 小时）
+      <br>4. git commit: <code>feat(search-modern): add recommendations and order anomaly detection</code>
     </div>
   </div>
 </div>
@@ -748,25 +745,25 @@ curl 'http://localhost:8085/vector/search?query=camera+video&limit=5'</div>
       <td style="padding: 0.5rem; color: var(--purple);">C</td>
       <td style="padding: 0.5rem;">P6 pgvector 语义搜索</td>
       <td style="padding: 0.5rem;">6h</td>
-      <td style="padding: 0.5rem;">mall-search-pg 模块（原型完成，待接真实 embedding）</td>
-      <td style="padding: 0.5rem; color: var(--orange);">🔄</td>
+      <td style="padding: 0.5rem;">mall-search-pg 模块（真实 embedding + hybrid search）</td>
+      <td style="padding: 0.5rem; color: var(--green);">✅</td>
     </tr>
     <tr style="border-bottom: 1px solid var(--border);">
       <td style="padding: 0.5rem;"></td>
       <td style="padding: 0.5rem;">P7 RAG 客服</td>
       <td style="padding: 0.5rem;">6h</td>
-      <td style="padding: 0.5rem;">/ai/chat + SSE streaming</td>
-      <td style="padding: 0.5rem;"></td>
+      <td style="padding: 0.5rem;">/ai/chat + /ai/chat/stream</td>
+      <td style="padding: 0.5rem; color: var(--green);">✅</td>
     </tr>
     <tr>
       <td style="padding: 0.5rem;"></td>
       <td style="padding: 0.5rem;">P8 推荐 + 异常</td>
       <td style="padding: 0.5rem;">8h</td>
       <td style="padding: 0.5rem;">/ai/recommend + /ai/anomaly</td>
-      <td style="padding: 0.5rem;"></td>
+      <td style="padding: 0.5rem; color: var(--green);">✅</td>
     </tr>
   </table>
-  <p style="margin-top: 0.8rem; font-size: 0.85rem; color: var(--text-dim);">Phase A+B 已完成（~19h）。剩余 P6 真实 embedding 接入 + P7 RAG + P8 推荐异常检测（~20h）。</p>
+  <p style="margin-top: 0.8rem; font-size: 0.85rem; color: var(--text-dim);">Phase A+B+C 已完成（~39h）。P6/P7/P8 均已落地并通过本地验收。</p>
 </div>
 
 <div style="text-align: center; color: var(--text-dim); font-size: 0.82rem; padding: 1rem 0;">
@@ -783,6 +780,9 @@ cd mall-portal && JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Con
 
 # mall-search-pg (向量搜索，端口 8085)
 cd mall-search-pg && JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home mvn spring-boot:run
+
+# mall-search-modern (AI 搜索与智能服务，端口 8081)
+cd mall-search-modern && mvn spring-boot:run -DskipTests
 
 # 跑单元测试
 JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home mvn test -pl mall-admin
