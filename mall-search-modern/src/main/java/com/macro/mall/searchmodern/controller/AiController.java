@@ -2,7 +2,11 @@ package com.macro.mall.searchmodern.controller;
 
 import com.macro.mall.searchmodern.api.CommonResult;
 import com.macro.mall.searchmodern.domain.EsProductResponse;
+import com.macro.mall.searchmodern.domain.OrderAnomalyReport;
+import com.macro.mall.searchmodern.domain.ProductRecommendation;
 import com.macro.mall.searchmodern.domain.RagResponse;
+import com.macro.mall.searchmodern.service.OrderAnomalyService;
+import com.macro.mall.searchmodern.service.PersonalizedRecommendationService;
 import com.macro.mall.searchmodern.service.RagService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,9 +26,15 @@ public class AiController {
     private static final long STREAM_TIMEOUT_MS = 120_000L;
 
     private final RagService ragService;
+    private final PersonalizedRecommendationService recommendationService;
+    private final OrderAnomalyService orderAnomalyService;
 
-    public AiController(RagService ragService) {
+    public AiController(RagService ragService,
+                        PersonalizedRecommendationService recommendationService,
+                        OrderAnomalyService orderAnomalyService) {
         this.ragService = ragService;
+        this.recommendationService = recommendationService;
+        this.orderAnomalyService = orderAnomalyService;
     }
 
     public record ChatRequest(String question) {}
@@ -73,6 +83,21 @@ public class AiController {
             }
         });
         return emitter;
+    }
+
+    @Operation(summary = "个性化推荐：基于用户订单商品交互推荐商品")
+    @GetMapping("/recommend")
+    public CommonResult<List<ProductRecommendation>> recommend(
+            @RequestParam Long memberId,
+            @RequestParam(required = false, defaultValue = "5") Integer size) {
+        return CommonResult.success(recommendationService.recommend(memberId, size));
+    }
+
+    @Operation(summary = "订单异常检测：返回异常订单和原因标签")
+    @GetMapping("/anomaly/orders")
+    public CommonResult<OrderAnomalyReport> detectOrderAnomalies(
+            @RequestParam(required = false, defaultValue = "7") Integer days) {
+        return CommonResult.success(orderAnomalyService.detectOrderAnomalies(days));
     }
 
     private void sendEvent(SseEmitter emitter, String eventName, Object data) {
