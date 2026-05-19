@@ -74,26 +74,52 @@ public class RagServiceImpl implements RagService {
 
     @Override
     public RagResponse ask(String question) {
+        RagAnswerPlan plan = prepareAnswer(question);
+        if (!plan.needsChat()) {
+            return new RagResponse(plan.immediateAnswer(), plan.sourceProducts());
+        }
+
+        log.debug("RAG system prompt ({} chars), {} products",
+                plan.systemPrompt().length(), plan.sourceProducts().size());
+        String answer = chatService.chat(plan.systemPrompt(), plan.question());
+        return new RagResponse(answer, plan.sourceProducts());
+    }
+
+    @Override
+    public void askStream(String question, RagStreamSink sink) {
+        RagAnswerPlan plan = prepareAnswer(question);
+        sink.onSources(plan.sourceProducts());
+        if (!plan.needsChat()) {
+            sink.onToken(plan.immediateAnswer());
+            sink.onComplete(new RagResponse(plan.immediateAnswer(), plan.sourceProducts()));
+            return;
+        }
+
+        log.debug("Streaming RAG system prompt ({} chars), {} products",
+                plan.systemPrompt().length(), plan.sourceProducts().size());
+        String answer = chatService.streamChat(plan.systemPrompt(), plan.question(), sink::onToken);
+        sink.onComplete(new RagResponse(answer, plan.sourceProducts()));
+    }
+
+    private RagAnswerPlan prepareAnswer(String question) {
         if (question == null || question.isBlank()) {
-            return new RagResponse(NO_PRODUCTS_MESSAGE, List.of());
+            return RagAnswerPlan.immediate(question, NO_PRODUCTS_MESSAGE);
         }
         if (!isShoppingQuestion(question)) {
-            return new RagResponse(OFF_TOPIC_MESSAGE, List.of());
+            return RagAnswerPlan.immediate(question, OFF_TOPIC_MESSAGE);
         }
 
         Page<EsProduct> result = esProductService.searchSemantic(question, 0, 5);
         List<EsProduct> products = filterRelevantProducts(question, result.getContent());
 
         if (products.isEmpty()) {
-            return new RagResponse(NO_PRODUCTS_MESSAGE, List.of());
+            return RagAnswerPlan.immediate(question, NO_PRODUCTS_MESSAGE);
         }
 
         String context = buildContext(products);
         String systemPromptWithContext = SYSTEM_PROMPT + "\n\n当前可推荐商品：\n" + context;
-
-        log.debug("RAG system prompt ({} chars), {} products", systemPromptWithContext.length(), products.size());
-        String answer = chatService.chat(systemPromptWithContext, question);
-        return new RagResponse(answer, products.stream().map(EsProductResponse::from).toList());
+        return RagAnswerPlan.chat(question, systemPromptWithContext,
+                products.stream().map(EsProductResponse::from).toList());
     }
 
     private String buildContext(List<EsProduct> products) {
@@ -220,6 +246,24 @@ public class RagServiceImpl implements RagService {
     private static void appendIfNotBlank(StringBuilder sb, String value) {
         if (value != null && !value.isBlank()) {
             sb.append(' ').append(value);
+        }
+    }
+
+    private record RagAnswerPlan(String question,
+                                 String systemPrompt,
+                                 String immediateAnswer,
+                                 List<EsProductResponse> sourceProducts) {
+
+        static RagAnswerPlan immediate(String question, String answer) {
+            return new RagAnswerPlan(question, null, answer, List.of());
+        }
+
+        static RagAnswerPlan chat(String question, String systemPrompt, List<EsProductResponse> sourceProducts) {
+            return new RagAnswerPlan(question, systemPrompt, null, sourceProducts);
+        }
+
+        boolean needsChat() {
+            return immediateAnswer == null;
         }
     }
 }
