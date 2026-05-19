@@ -1,5 +1,6 @@
 package com.macro.mall.searchpg.service;
 
+import com.macro.mall.searchpg.domain.HybridSearchResult;
 import com.macro.mall.searchpg.domain.ProductEmbedding;
 import com.macro.mall.searchpg.domain.SimilarityResult;
 
@@ -13,6 +14,8 @@ public interface VectorSearchService {
     void batchIndexProducts(List<ProductEmbedding> products);
 
     List<SimilarityResult> semanticSearch(String query, int limit);
+
+    List<HybridSearchResult> hybridSearch(String query, int limit, double vectorWeight, double textWeight);
 
     List<ProductEmbedding> getAllProducts();
 

@@ -1,5 +1,6 @@
 package com.macro.mall.searchpg.controller;
 
+import com.macro.mall.searchpg.domain.HybridSearchResult;
 import com.macro.mall.searchpg.domain.ProductEmbedding;
 import com.macro.mall.searchpg.domain.SimilarityResult;
 import com.macro.mall.searchpg.service.VectorSearchService;
@@ -77,6 +78,19 @@ public class VectorSearchController {
             @Parameter(description = "返回数量") @RequestParam(defaultValue = "10") int limit) {
         List<SimilarityResult> results = vectorSearchService.semanticSearch(query, limit);
         return new SearchResponse(query, results);
+    }
+
+    public record HybridSearchResponse(String query, List<HybridSearchResult> results) {}
+
+    @Operation(summary = "混合搜索")
+    @GetMapping("/search/hybrid")
+    public HybridSearchResponse hybridSearch(
+            @Parameter(description = "搜索查询") @RequestParam String query,
+            @Parameter(description = "返回数量") @RequestParam(defaultValue = "10") int limit,
+            @Parameter(description = "向量权重") @RequestParam(defaultValue = "0.7") double vectorWeight,
+            @Parameter(description = "关键词权重") @RequestParam(defaultValue = "0.3") double textWeight) {
+        List<HybridSearchResult> results = vectorSearchService.hybridSearch(query, limit, vectorWeight, textWeight);
+        return new HybridSearchResponse(query, results);
     }
 
     public record StatsResponse(int totalProducts) {}

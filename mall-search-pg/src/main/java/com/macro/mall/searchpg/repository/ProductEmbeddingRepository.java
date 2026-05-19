@@ -1,5 +1,6 @@
 package com.macro.mall.searchpg.repository;
 
+import com.macro.mall.searchpg.domain.HybridSearchResult;
 import com.macro.mall.searchpg.domain.ProductEmbedding;
 import com.macro.mall.searchpg.domain.SimilarityResult;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,13 @@ import java.util.List;
 
 @Repository
 public class ProductEmbeddingRepository {
+
+    private static final String SEARCH_TEXT_SQL = """
+            coalesce(name, '') || ' ' ||
+            coalesce(description, '') || ' ' ||
+            coalesce(category, '') || ' ' ||
+            coalesce(brand, '')
+            """;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -31,9 +39,21 @@ public class ProductEmbeddingRepository {
             .similarity(rs.getDouble("similarity"))
             .build();
 
+    private final RowMapper<HybridSearchResult> hybridSearchResultRowMapper = (rs, rowNum) -> HybridSearchResult.builder()
+            .productId(rs.getLong("product_id"))
+            .name(rs.getString("name"))
+            .description(rs.getString("description"))
+            .category(rs.getString("category"))
+            .brand(rs.getString("brand"))
+            .similarity(rs.getDouble("similarity"))
+            .textScore(rs.getDouble("text_score"))
+            .hybridScore(rs.getDouble("hybrid_score"))
+            .build();
+
     public void initSchema(int dims) {
         jdbcTemplate.execute(String.format("""
             CREATE EXTENSION IF NOT EXISTS vector;
+            CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
             CREATE TABLE IF NOT EXISTS product_embeddings (
                 id BIGSERIAL PRIMARY KEY,
@@ -51,7 +71,10 @@ public class ProductEmbeddingRepository {
 
             CREATE UNIQUE INDEX IF NOT EXISTS idx_product_embeddings_product_id
             ON product_embeddings (product_id);
-        """, dims));
+
+            CREATE INDEX IF NOT EXISTS idx_product_embeddings_text_trgm
+            ON product_embeddings USING gin ((%s) gin_trgm_ops);
+        """, dims, SEARCH_TEXT_SQL));
     }
 
     public void insert(ProductEmbedding embedding) {
@@ -90,6 +113,55 @@ public class ProductEmbeddingRepository {
         """, queryVector, queryVector, limit);
 
         return jdbcTemplate.query(sql, similarityResultRowMapper);
+    }
+
+    public List<HybridSearchResult> hybridSearch(double[] queryEmbedding, String keyword, int limit,
+                                                 double vectorWeight, double textWeight) {
+        if (queryEmbedding == null || queryEmbedding.length == 0) {
+            throw new IllegalArgumentException("Query embedding cannot be null or empty");
+        }
+
+        String queryVector = arrayToPgVector(queryEmbedding);
+        String searchKeyword = keyword == null ? "" : keyword.trim();
+
+        String sql = String.format("""
+            WITH scored AS (
+                SELECT product_id,
+                       name,
+                       description,
+                       category,
+                       brand,
+                       GREATEST(0.0, 1 - (embedding <=> ?::vector)) AS similarity,
+                       GREATEST(
+                           similarity(search_text, ?),
+                           CASE WHEN search_text ILIKE ('%%' || ? || '%%') THEN 1.0 ELSE 0.0 END
+                       ) AS text_score
+                FROM (
+                    SELECT product_id,
+                           name,
+                           description,
+                           category,
+                           brand,
+                           embedding,
+                           %s AS search_text
+                    FROM product_embeddings
+                ) product_text
+            )
+            SELECT product_id,
+                   name,
+                   description,
+                   category,
+                   brand,
+                   similarity,
+                   text_score,
+                   (? * similarity + ? * text_score) AS hybrid_score
+            FROM scored
+            ORDER BY hybrid_score DESC, similarity DESC, product_id
+            LIMIT ?
+        """, SEARCH_TEXT_SQL);
+
+        return jdbcTemplate.query(sql, hybridSearchResultRowMapper,
+                queryVector, searchKeyword, searchKeyword, vectorWeight, textWeight, limit);
     }
 
     public ProductEmbedding findByProductId(Long productId) {
