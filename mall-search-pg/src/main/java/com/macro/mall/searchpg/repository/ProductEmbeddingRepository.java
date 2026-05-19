@@ -31,8 +31,8 @@ public class ProductEmbeddingRepository {
             .similarity(rs.getDouble("similarity"))
             .build();
 
-    public void initSchema() {
-        jdbcTemplate.execute("""
+    public void initSchema(int dims) {
+        jdbcTemplate.execute(String.format("""
             CREATE EXTENSION IF NOT EXISTS vector;
 
             CREATE TABLE IF NOT EXISTS product_embeddings (
@@ -40,7 +40,7 @@ public class ProductEmbeddingRepository {
                 product_id BIGINT NOT NULL,
                 name TEXT NOT NULL,
                 description TEXT,
-                embedding vector(1536) NOT NULL,
+                embedding vector(%d) NOT NULL,
                 category TEXT,
                 brand TEXT,
                 created_at TIMESTAMP DEFAULT NOW()
@@ -51,7 +51,7 @@ public class ProductEmbeddingRepository {
 
             CREATE UNIQUE INDEX IF NOT EXISTS idx_product_embeddings_product_id
             ON product_embeddings (product_id);
-        """);
+        """, dims));
     }
 
     public void insert(ProductEmbedding embedding) {

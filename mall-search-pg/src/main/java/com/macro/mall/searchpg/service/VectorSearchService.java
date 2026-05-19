@@ -17,4 +17,6 @@ public interface VectorSearchService {
     List<ProductEmbedding> getAllProducts();
 
     int getProductCount();
+
+    int syncFromMysql();
 }

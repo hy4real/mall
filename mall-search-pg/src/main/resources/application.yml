@@ -11,6 +11,18 @@ spring:
     password: mall
     driver-class-name: org.postgresql.Driver
 
+app:
+  embedding:
+    dims: 1024
+    api-url: http://localhost:11434
+    model: qwen3-embedding:0.6b
+    api-key: ${SILICONFLOW_API_KEY:}
+    timeout-ms: 10000
+  mysql:
+    url: jdbc:mysql://localhost:3306/mall?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+
 springdoc:
   api-docs:
     enabled: true

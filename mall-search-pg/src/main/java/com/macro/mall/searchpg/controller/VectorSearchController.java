@@ -87,6 +87,15 @@ public class VectorSearchController {
         return new StatsResponse(vectorSearchService.getProductCount());
     }
 
+    @Operation(summary = "从 MySQL 同步商品数据到向量库")
+    @PostMapping("/sync")
+    public SyncResponse syncFromMysql() {
+        int count = vectorSearchService.syncFromMysql();
+        return new SyncResponse("Synced " + count + " products", count);
+    }
+
+    public record SyncResponse(String message, int count) {}
+
     @Operation(summary = "获取所有商品")
     @GetMapping("/products")
     public List<ProductEmbedding> getAllProducts() {

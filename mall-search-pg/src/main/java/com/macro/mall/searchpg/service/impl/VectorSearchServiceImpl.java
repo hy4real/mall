@@ -2,51 +2,66 @@ package com.macro.mall.searchpg.service.impl;
 
 import com.macro.mall.searchpg.domain.ProductEmbedding;
 import com.macro.mall.searchpg.domain.SimilarityResult;
+import com.macro.mall.searchpg.reader.MysqlProductReader;
+import com.macro.mall.searchpg.reader.MysqlProductReader.ProductRow;
 import com.macro.mall.searchpg.repository.ProductEmbeddingRepository;
+import com.macro.mall.searchpg.service.EmbeddingService;
 import com.macro.mall.searchpg.service.VectorSearchService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.List;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class VectorSearchServiceImpl implements VectorSearchService {
 
-    private static final int DIMENSIONS = 1536;
+    private static final Logger log = LoggerFactory.getLogger(VectorSearchServiceImpl.class);
+
     private final ProductEmbeddingRepository repository;
+    private final EmbeddingService embeddingService;
+    private final MysqlProductReader mysqlProductReader;
+
+    public VectorSearchServiceImpl(ProductEmbeddingRepository repository,
+                                   EmbeddingService embeddingService,
+                                   MysqlProductReader mysqlProductReader) {
+        this.repository = repository;
+        this.embeddingService = embeddingService;
+        this.mysqlProductReader = mysqlProductReader;
+    }
 
     @Override
     public void initDatabase() {
-        repository.initSchema();
-        log.info("Database schema initialized");
+        repository.initSchema(embeddingService.dims());
+        log.info("Database schema initialized ({} dims)", embeddingService.dims());
     }
 
     @Override
     public void indexProduct(ProductEmbedding product) {
-        String text = product.getName() + " " + product.getDescription();
-        product.setEmbedding(textToVector(text));
+        String text = productText(product);
+        product.setEmbedding(embeddingService.embed(text));
         repository.insert(product);
         log.info("Indexed product: {}", product.getProductId());
     }
 
     @Override
     public void batchIndexProducts(List<ProductEmbedding> products) {
-        products.forEach(p -> {
-            String text = p.getName() + " " + p.getDescription();
-            p.setEmbedding(textToVector(text));
-        });
+        if (products.isEmpty()) return;
+        List<String> texts = products.stream()
+                .map(this::productText)
+                .toList();
+        List<double[]> embeddings = embeddingService.embedBatch(texts);
+        for (int i = 0; i < products.size(); i++) {
+            products.get(i).setEmbedding(embeddings.get(i));
+        }
         repository.batchInsert(products);
         log.info("Batch indexed {} products", products.size());
     }
 
     @Override
     public List<SimilarityResult> semanticSearch(String query, int limit) {
-        double[] queryVec = textToVector(query);
+        double[] queryVec = embeddingService.embed(query);
         return repository.semanticSearch(queryVec, limit);
     }
 
@@ -60,37 +75,41 @@ public class VectorSearchServiceImpl implements VectorSearchService {
         return repository.count();
     }
 
-    /**
-     * Deterministic text-to-vector using SHA-256 sliding windows.
-     * Texts that share common words will produce vectors with similar regions,
-     * so cosine similarity is non-zero for related texts.
-     */
-    private double[] textToVector(String text) {
-        double[] vec = new double[DIMENSIONS];
-        String lower = text.toLowerCase();
-        String[] words = lower.split("[\\s,;.!?/()\\[\\]{}]+");
-
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            for (String word : words) {
-                if (word.isEmpty()) continue;
-                byte[] hash = md.digest(word.getBytes(StandardCharsets.UTF_8));
-                // Each SHA-256 hash = 32 bytes → use to set ~32 dimensions
-                for (int j = 0; j < 32; j++) {
-                    int idx = Math.abs(hash[j] % DIMENSIONS);
-                    vec[idx] += 1.0;
-                }
-            }
-            // Normalize to unit length
-            double norm = 0;
-            for (double v : vec) norm += v * v;
-            norm = Math.sqrt(norm);
-            if (norm > 0) {
-                for (int i = 0; i < DIMENSIONS; i++) vec[i] /= norm;
-            }
-        } catch (Exception e) {
-            log.error("Failed to generate vector", e);
+    @Override
+    public int syncFromMysql() {
+        List<ProductRow> rows = mysqlProductReader.readAllProducts();
+        List<ProductEmbedding> products = new ArrayList<>(rows.size());
+        for (ProductRow row : rows) {
+            products.add(ProductEmbedding.builder()
+                    .productId(row.id())
+                    .name(row.name())
+                    .description(buildDescription(row))
+                    .category(row.categoryName())
+                    .brand(row.brandName())
+                    .build());
         }
-        return vec;
+        batchIndexProducts(products);
+        log.info("Synced {} products from MySQL", products.size());
+        return products.size();
+    }
+
+    private String productText(ProductEmbedding product) {
+        StringBuilder sb = new StringBuilder(product.getName());
+        if (product.getDescription() != null && !product.getDescription().isBlank()) {
+            sb.append(' ').append(product.getDescription());
+        }
+        return sb.toString();
+    }
+
+    private String buildDescription(ProductRow row) {
+        StringBuilder sb = new StringBuilder();
+        if (row.subTitle() != null && !row.subTitle().isBlank()) {
+            sb.append(row.subTitle());
+        }
+        if (row.keywords() != null && !row.keywords().isBlank()) {
+            if (!sb.isEmpty()) sb.append(' ');
+            sb.append(row.keywords());
+        }
+        return sb.toString();
     }
 }
