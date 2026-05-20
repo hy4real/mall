@@ -4,9 +4,11 @@ import com.macro.mall.security.component.*;
 import com.macro.mall.security.util.JwtTokenUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.bind.Bindable;
+import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,17 +19,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * Created by macro on 2022/5/20.
  */
 @Configuration
-@EnableConfigurationProperties(IgnoreUrlsConfig.class)
 public class CommonSecurityConfig {
+
+    @Bean
+    public IgnoreUrlsConfig ignoreUrlsConfig(Environment env) {
+        return Binder.get(env)
+                .bind("secure.ignored", Bindable.of(IgnoreUrlsConfig.class))
+                .orElseGet(IgnoreUrlsConfig::new);
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public IgnoreUrlsConfig ignoreUrlsConfig() {
-        return new IgnoreUrlsConfig();
     }
 
     @Bean
