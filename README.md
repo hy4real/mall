@@ -240,7 +240,7 @@ P8 本地验收结果（2026-05-19）：
 - `GET /ai/recommend?memberId=1&size=5` 返回 `code=200`，5 个推荐商品。
 - Redis 写入 `recommend:1`，类型 `string`，TTL 约 1 小时（实测 `3572` 秒）。
 - `GET /ai/anomaly/orders?days=30` 返回 `code=200`，`totalOrders=8`，`anomalyCount=8`，原因汇总包含 `ORDER_BURST` 和 `AMOUNT_OUTLIER`。
-- `mall-search-pg mvn test` 通过 3 个测试；`mall-search-modern mvn test` 通过 15 个测试。
+- `mall-search-pg mvn test` 通过 17 个测试；`mall-search-modern mvn test` 通过 29 个测试。
 
 ![公众号图片](./document/resource/qrcode_for_macrozheng_258.jpg)
 
