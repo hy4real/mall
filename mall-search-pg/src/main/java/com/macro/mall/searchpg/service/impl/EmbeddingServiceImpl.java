@@ -35,13 +35,18 @@ public class EmbeddingServiceImpl implements EmbeddingService {
             @Value("${app.embedding.api-key:}") String apiKey,
             @Value("${app.embedding.dims:1024}") int dims,
             @Value("${app.embedding.timeout-ms:10000}") int timeoutMs) {
+        this(apiUrl, model, apiKey, dims, timeoutMs, new RestTemplate());
+    }
+
+    EmbeddingServiceImpl(String apiUrl, String model, String apiKey,
+                         int dims, int timeoutMs, RestTemplate restTemplate) {
         this.apiUrl = apiUrl.endsWith("/") ? apiUrl.substring(0, apiUrl.length() - 1) : apiUrl;
         this.model = model;
         this.apiKey = (apiKey != null && !apiKey.isBlank()) ? apiKey : null;
         this.dims = dims;
         this.timeoutMs = timeoutMs;
         this.objectMapper = new ObjectMapper();
-        this.restTemplate = new RestTemplate();
+        this.restTemplate = restTemplate;
     }
 
     @Override
