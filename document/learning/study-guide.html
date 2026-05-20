@@ -197,6 +197,8 @@
   <a href="#p6">P6 语义搜索</a>
   <a href="#p7">P7 智能客服 RAG</a>
   <a href="#p8">P8 推荐 + 异常检测</a>
+  <div class="nav-divider"></div>
+  <a href="#p9">P9 端到端集成</a>
 </nav>
 
 <h1>Mall 项目执行路线</h1>
@@ -216,17 +218,21 @@
     <div class="rm-phase" style="color:var(--green)">已完成</div>
     <div class="rm-desc">工程实践<br>38个测试+重构<br>Portal验证</div>
   </div>
-  <div class="roadmap-item rm-current">
-    <div class="rm-phase" style="color:var(--purple)">Phase C</div>
+  <div class="roadmap-item rm-done">
+    <div class="rm-phase" style="color:var(--green)">已完成</div>
     <div class="rm-desc">AI 集成<br>pgvector+RAG+推荐<br>P6 ~ P8</div>
+  </div>
+  <div class="roadmap-item rm-done">
+    <div class="rm-phase" style="color:var(--green)">已完成</div>
+    <div class="rm-desc">端到端集成<br>前后端打通<br>P9</div>
   </div>
 </div>
 
 <div class="stats">
   <div class="stat"><div class="stat-num">246</div><div class="stat-label">已改动文件</div></div>
   <div class="stat"><div class="stat-num">-1101</div><div class="stat-label">净减代码行</div></div>
-  <div class="stat"><div class="stat-num">38</div><div class="stat-label">单元测试</div></div>
-  <div class="stat"><div class="stat-num">5/8</div><div class="stat-label">已完成任务</div></div>
+  <div class="stat"><div class="stat-num">46</div><div class="stat-label">单元测试</div></div>
+  <div class="stat"><div class="stat-num">9/9</div><div class="stat-label">已完成任务</div></div>
 </div>
 
 <!-- ============================== PHASE A ============================== -->
@@ -693,6 +699,125 @@ curl 'http://localhost:8085/vector/search/hybrid?query=camera+video&limit=5'</di
   </div>
 </div>
 
+<!-- ============================== PHASE D ============================== -->
+<div class="phase-banner">
+  <h3>Phase D — 端到端集成：前后端打通 + 安全修复 ✅ 已完成</h3>
+  后端 46 个测试全绿，admin-web + app-web 前端跑通，修复 IgnoreUrlsConfig 白名单绑定 bug。
+</div>
+
+<!-- ========== P9: End-to-End Integration ========== -->
+<div id="p9" class="section open">
+  <div class="section-header">
+    <span class="priority-tag p5">P9</span>
+    <h2>端到端集成 — 前后端打通 + 安全修复 ✅ <span class="time-tag">已完成</span></h2>
+    <span class="arrow">▶</span>
+  </div>
+  <div class="section-body">
+    <div class="why"><strong>为什么：</strong>后端 API 写得再好，前端跑不通就是零。端到端验证能发现配置层、安全层、CORS 层的隐性 bug，这些是单元测试覆盖不到的。</div>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--orange);">① IgnoreUrlsConfig 白名单绑定 Bug（真实踩坑）</h3>
+    <div class="pitfall"><strong>问题：</strong>mall-portal 所有白名单端点返回 401，但 mall-admin 正常。根因：<code>CommonSecurityConfig</code> 同时有 <code>@EnableConfigurationProperties(IgnoreUrlsConfig.class)</code> 和 <code>@Bean ignoreUrlsConfig()</code>，后者创建空实例覆盖了前者绑定的 YAML 值。mall-admin 不受影响是因为它有 <code>DynamicSecurityService</code>，走数据库鉴权兜底。</div>
+
+    <pre><code><span class="cm">// 旧写法：@Bean 覆盖了 @EnableConfigurationProperties 的绑定</span>
+<span class="an">@Configuration</span>
+<span class="an">@EnableConfigurationProperties</span>(<span class="ty">IgnoreUrlsConfig</span>.<span class="kw">class</span>)
+<span class="kw">public class</span> <span class="ty">CommonSecurityConfig</span> {
+    <span class="an">@Bean</span>
+    <span class="kw">public</span> <span class="ty">IgnoreUrlsConfig</span> <span class="fn">ignoreUrlsConfig</span>() {
+        <span class="kw">return new</span> <span class="ty">IgnoreUrlsConfig</span>(); <span class="cm">// 空实例！urls=[]</span>
+    }
+}
+
+<span class="cm">// 修复：用 Binder 显式绑定，无歧义</span>
+<span class="an">@Bean</span>
+<span class="kw">public</span> <span class="ty">IgnoreUrlsConfig</span> <span class="fn">ignoreUrlsConfig</span>(<span class="ty">Environment</span> env) {
+    <span class="kw">return</span> <span class="ty">Binder</span>.get(env)
+            .bind(<span class="str">"secure.ignored"</span>, <span class="ty">Bindable</span>.of(<span class="ty">IgnoreUrlsConfig</span>.<span class="kw">class</span>))
+            .orElseGet(<span class="ty">IgnoreUrlsConfig</span>::<span class="kw">new</span>);
+}</code></pre>
+
+    <div class="why"><strong>教训：</strong><code>@EnableConfigurationProperties</code> + <code>@Bean</code> 同类型共存时，<code>@Bean</code> 优先级更高，会静默覆盖绑定。用 <code>Binder</code> 显式绑定更可靠。</div>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--orange);">② 前端架构概览</h3>
+    <div class="file-card">
+      <div class="file-path">mall-admin-web/（Vue 3 + Element Plus + Vite + TypeScript）</div>
+      <div class="file-desc">后台管理前端。端口 5173。连接 mall-admin（8080）。已添加 AI 搜索调试页面（Playground + ChatDebug）</div>
+    </div>
+    <div class="file-card">
+      <div class="file-path">mall-app-web/（uni-app Vue 2，HBuilderX 运行）</div>
+      <div class="file-desc">消费者移动端。连接 mall-portal（8085）。需 HBuilderX 打开运行到浏览器</div>
+    </div>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--orange);">③ 前后端对应关系</h3>
+    <pre><code>mall-admin (8080)  ←→  mall-admin-web (5173)   后台管理
+mall-portal (8085) ←→  mall-app-web (HBuilderX)  消费者端
+mall-search-modern (8081) ←→ admin-web AI 页面    AI 调试</code></pre>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--orange);">④ SCSS 兼容性修复</h3>
+    <div class="pitfall"><strong>问题：</strong>uni-app Vue 2 默认用 dart-sass，旧项目用 node-sass 语法。<code>/deep/</code> 选择器和 <code>$uni-spacing-row-sm</code> 变量不兼容。</div>
+    <pre><code><span class="cm">// 修复 1：/deep/ → ::v-deep</span>
+<span class="cm">// 旧</span>
+.detail-desc /deep/ img { width: 100%; }
+<span class="cm">// 新</span>
+.detail-desc ::v-deep img { width: 100%; }
+
+<span class="cm">// 修复 2：未定义变量 → 硬编码值</span>
+<span class="cm">// 旧</span>
+margin-left: $uni-spacing-row-sm;
+<span class="cm">// 新</span>
+margin-left: 20upx;</code></pre>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--orange);">⑤ 端到端启动清单</h3>
+    <div class="cmd"># 1. 启动中间件
+docker compose -f document/docker/docker-compose-env.yml up -d
+
+# 2. 启动后端
+cd mall && JAVA_HOME=... mvn spring-boot:run -pl mall-admin -DskipTests &
+cd mall && JAVA_HOME=... mvn spring-boot:run -pl mall-portal -DskipTests &
+
+# 3. 启动 admin-web 前端
+cd mall-admin-web && npm install && npx vite --host
+
+# 4. app-web：用 HBuilderX 打开 mall-app-web，运行到浏览器
+
+# 5. 验证
+curl -X POST http://localhost:8080/admin/login -d 'username=admin&password=admin'
+curl http://localhost:8085/home/content
+open http://localhost:5173</div>
+
+    <h3 style="margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--green);">⑥ 测试覆盖（46 个）</h3>
+    <table style="width: 100%; font-size: 0.88rem; border-collapse: collapse;">
+      <tr style="border-bottom: 1px solid var(--border);">
+        <th style="text-align: left; padding: 0.4rem; color: var(--text-dim);">模块</th>
+        <th style="text-align: left; padding: 0.4rem; color: var(--text-dim);">测试数</th>
+        <th style="text-align: left; padding: 0.4rem; color: var(--text-dim);">覆盖内容</th>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 0.4rem;">mall-admin</td>
+        <td style="padding: 0.4rem;">38</td>
+        <td style="padding: 0.4rem;">7 个核心 Service（Brand/Product/Order/Admin/Coupon/Subject/Flash）</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 0.4rem;">mall-search-modern</td>
+        <td style="padding: 0.4rem;">29</td>
+        <td style="padding: 0.4rem;">Chat/RAG/Recommendation/Anomaly/EsProduct/Embedding（6 个 Service 全覆盖）</td>
+      </tr>
+      <tr>
+        <td style="padding: 0.4rem;">mall-search-pg</td>
+        <td style="padding: 0.4rem;">17</td>
+        <td style="padding: 0.4rem;">VectorSearch（init/index/search/hybrid/sync）+ Embedding</td>
+      </tr>
+    </table>
+
+    <div class="deliverable"><strong>Deliverable：</strong>
+      <br>1. admin-web 登录 → 看到商品列表 → AI 搜索页面可用
+      <br>2. app-web 首页 → 商品详情 → 购物流程可走通
+      <br>3. 修复 IgnoreUrlsConfig 白名单绑定 bug
+      <br>4. 修复 SCSS dart-sass 兼容性问题
+    </div>
+  </div>
+</div>
+
 <!-- ============================== Summary ============================== -->
 <hr>
 
@@ -755,15 +880,22 @@ curl 'http://localhost:8085/vector/search/hybrid?query=camera+video&limit=5'</di
       <td style="padding: 0.5rem;">/ai/chat + /ai/chat/stream</td>
       <td style="padding: 0.5rem; color: var(--green);">✅</td>
     </tr>
-    <tr>
+    <tr style="border-bottom: 1px solid var(--border);">
       <td style="padding: 0.5rem;"></td>
       <td style="padding: 0.5rem;">P8 推荐 + 异常</td>
       <td style="padding: 0.5rem;">8h</td>
       <td style="padding: 0.5rem;">/ai/recommend + /ai/anomaly</td>
       <td style="padding: 0.5rem; color: var(--green);">✅</td>
     </tr>
+    <tr>
+      <td style="padding: 0.5rem; color: var(--green);">D</td>
+      <td style="padding: 0.5rem;">P9 端到端集成</td>
+      <td style="padding: 0.5rem;">4h</td>
+      <td style="padding: 0.5rem;">前后端打通 + 白名单修复 + 46 测试</td>
+      <td style="padding: 0.5rem; color: var(--green);">✅</td>
+    </tr>
   </table>
-  <p style="margin-top: 0.8rem; font-size: 0.85rem; color: var(--text-dim);">Phase A+B+C 已完成（~39h）。P6/P7/P8 均已落地并通过本地验收。</p>
+  <p style="margin-top: 0.8rem; font-size: 0.85rem; color: var(--text-dim);">Phase A+B+C+D 全部完成（~43h）。9/9 任务通过。46 个单元测试全绿，前后端端到端跑通。</p>
 </div>
 
 <div style="text-align: center; color: var(--text-dim); font-size: 0.82rem; padding: 1rem 0;">
